@@ -516,8 +516,9 @@ function Plot ()
     this.yAxisTitle = null;
     this.FromGraphData = function (graphData)
     {
+        debugOut (DEBUG_LEVEL.DBG, "FromGraphData", "graphData.length = " + graphData.length);
         var ComputeOrderOfMagnitude = function (number) {
-            number = Math.abs (number);
+            number = Math.max (Math.abs (number), 1.0e-6);
             var order = 0;
             while (number > 10.0) {
                 ++order;
@@ -688,8 +689,10 @@ function Sampler ()
     this.values = {};
     this.domain = { name: "x", from: 0.0, to: 1.0 };
     this.sampleCount = 32;
-    this.maxRecursion = 6;
-    this.errorTolerance = 1.0e-3;
+    this.minRecursion = 2;
+    this.maxRecursion = 12;
+    this.errorToleranceDistance = 1.0e-2;
+    this.errorToleranceSlope = 1.0e-3;
     this.Evaluate = function (expr)
     {
         var scope = this;
@@ -702,27 +705,33 @@ function Sampler ()
             var y1 = d1.N (scope.values);
             return { x : x, y : y, y1 : y1 };
         };
-        var evaluateRange = function (a, b, rec) {
+        var distanceToPoint = function (A, B, C) {
+            var a = -(B.y - A.y);
+            var b = (B.x - A.x);
+            var c = -((a * A.x) + (b * A.y));
+            var d = (a * C.x) + (b * C.y) + c;
+            return d;
+        }
+        var evaluatePair = function (A, B, rec) {
             if (rec < scope.maxRecursion) {
-                var dydxSampled = (b.y - a.y) / (b.x - a.x);
-                var dydxComputed = (a.y1 + b.y1) / 2.0;
-                var error = Math.abs ((dydxSampled / dydxComputed) - 1);
-                if (error > scope.errorTolerance) {
-                    var c = evaluateExpr ((a.x + b.x) / 2.0);
-                    return evaluateRange (a, c, rec + 1).concat (evaluateRange (c, b, rec + 1));
+                var sampleSlopeError = function (A, B, C) {
+                    var dydxEstimated = (A.y1 + B.y1) / 2.0;
+                    var error = Math.abs((C.y1 / dydxEstimated) - 1);
+                    debugOut (DEBUG_LEVEL.DBG, "Sampler.Evaluate.evaluatePair", "error = " + error);
+                    return error;
+                }
+                var C = evaluateExpr((A.x + B.x) / 2.0);
+                if ((rec < scope.minRecursion) || (distanceToPoint(A, B, C) > scope.errorToleranceDistance) || (sampleSlopeError (A, B, C) > scope.errorToleranceSlope)) {
+                    var AC = evaluatePair(A, C, rec + 1);
+                    var CB = evaluatePair(C, B, rec + 1);
+                    var ACB = AC.concat(CB);
+                    return ACB;
                 }
             }
-            return [b];
-        };
-        var last = evaluateExpr (this.domain.from);
-        var sampleData = [last];
-        var stepSize = (this.domain.to - this.domain.from) / this.sampleCount;
-        for (var i = 1; i <= this.sampleCount; ++i) {
-            var x = this.domain.from + (stepSize * i);
-            var current = evaluateExpr (x);
-            sampleData = sampleData.concat (evaluateRange (last, current, 0));
-            last = current;
+            return [B];
         }
+        var sampleData = [evaluateExpr(this.domain.from)];
+        sampleData = sampleData.concat (evaluatePair(sampleData[0], evaluateExpr(this.domain.to), 0));
         return sampleData;
     };
     this.NSolve = function (expr)

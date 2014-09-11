@@ -10,10 +10,12 @@ function Plot ()
     
     this.FromGraphData = function (graphData) 
     {
+        debugOut (DEBUG_LEVEL.DBG, "FromGraphData", "graphData.length = " + graphData.length);
+
         // a function to compute the order of magintude of a number, to use
         // for scaling
         var ComputeOrderOfMagnitude = function (number) {
-            number = Math.abs (number);
+            number = Math.max (Math.abs (number), 1.0e-6);
             
             // a big number, then a small number
             var order = 0;
