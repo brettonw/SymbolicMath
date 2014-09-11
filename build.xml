@@ -1,6 +1,6 @@
 <project name="SymbolicMath" default="rel" basedir=".">
     <description> Build file for Symbolic Math JavaScript project </description>
-    <property name="build-tools-dir" value="../BuildTools"/>
+    <property name="build-tools-dir" value="build-tools"/>
   	<import file="${build-tools-dir}/common-build.xml"/>
   	
     <property name="source-dir" value="src"/>
@@ -29,6 +29,7 @@
             <fileset dir="${source-dir}" includes="Logarithm.js" />
             <fileset dir="${source-dir}" includes="Plot.js" />
             <fileset dir="${source-dir}" includes="Sampler.js" />
+            <fileset dir="${source-dir}" includes="Integrator.js" />
             <fileset dir="${source-dir}" includes="SM.js" />
             <fileset dir="${source-dir}" includes="Debug.js" />
         </concat>

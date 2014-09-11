@@ -35,10 +35,10 @@ Add.Render = function(enclose) {
     result += this.children[0].Render(true);
     if ((this.children.length == 2) AND (this.children[1].typename == "Constant") AND (this.children[1].constant < 0)) {
         var constant = EXPR (Constant) (-this.children[1].constant);
-        result += "<mo>-</mo>" + constant.Render(true);
+        result += "<mo>&#x2212;</mo>" + constant.Render(true);
     } else {
         for (var i = 1; i < this.children.length; ++i) {
-            result += "<mo>+</mo>" + this.children[i].Render(true);
+            result += "<mo>&#x002b;</mo>" + this.children[i].Render(true);
         }
     }
     if (enclose) result += "<mo>)</mo>";

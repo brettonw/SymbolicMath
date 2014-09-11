@@ -25,7 +25,7 @@ Sin.D = function(values) {
 };
 
 Sin.Render = function(enclose) {
-    return "Sin (" + _X.Render(false) + ")";
+    return "<mi>sin</mi><mrow><mo>(</mo>" + _X.Render(false) + "<mo>)</mo></mrow>";
 };
 
 #undef  _X

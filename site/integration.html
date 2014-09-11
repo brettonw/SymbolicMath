@@ -2,22 +2,11 @@
 <html>
     <head>
         <title>Symbolic Math - Integration</title>
-        <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        <script type="text/javascript" src="SymbolicMath-debug.js"></script>
-        <script type="text/javascript" src="d3.v3.js" charset="utf-8"></script>
-        <script type="text/javascript">
-        (function () {
-            //  When the renderer changes, ask the MathMenu to change
-            //  the renderer (this way we get any warning messages
-            window.setMathRenderingMode = function (renderer) {
-                MathJax.Hub.config.MathMenu.settings.renderer = renderer;
-                MathJax.Menu.Renderer.call(this);
-            };
-        })()
-        </script>
+        <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=MML_HTMLorMML"></script>
+        <script src="http://d3js.org/d3.v3.min.js"></script>
+        <script src="SymbolicMath.js"></script>
         <script type="text/javascript">
         function initPage() {
-            window.setMathRenderingMode("HTML-CSS");
 
             var display = new String();
             display = "<table cellspacing='5'>";
@@ -25,7 +14,7 @@
 
             // create the sampler I'll use to build graphs
             var sampler = new Sampler();
-            sampler.domain = ["t", 0.0, 2.0];
+            sampler.domain = { name: "t", from: 0.0, to: 2.0 };
             sampler.values["a"] = SM.namedConstants.g;
             sampler.values["v"] = SM.namedConstants.g;
 
@@ -37,7 +26,7 @@
             var t = SM.Expr("t");
             var y_of_t = SM.Add(SM.Multiply(v, t), SM.Multiply(-0.5, a, SM.Power(t, 2.0)).Simplify());
             var dValues = {};
-            dValues[sampler.domain[0]] = sampler.domain[1];
+            dValues[sampler.domain.name] = sampler.domain.from;
             var d1 = y_of_t.D(dValues);
             display += "<tr><td>" + y_of_t.toString() + "</td></tr>\n";
             display += "<tr><td>" + d1.toString() + "</td></tr>\n";
@@ -53,6 +42,9 @@
                 plot.xAxisTitle = "Time (s)";
                 plot.FromGraphData(graphData);
             }
+
+            document.getElementById('display').innerHTML += "<br>";
+
 
             // want to plot time vs. altitude with an object given an initial upward
             // velocity, and acted on by gravity (G=9.8M/s^2)

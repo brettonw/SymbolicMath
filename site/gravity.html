@@ -1,95 +1,96 @@
 <!doctype html> 
 <html>
-<head>
-    <title>Symbolic Math - Gravity</title>
-    <script type="text/javascript" src="SymbolicMath.js"></script>
-    <script type="text/javascript" src="d3.v2.min.js"></script> 
-</head>
-<body onload="initPage();">
-<div id="display"></div>
-<script type="text/javascript">
-    function initPage()
-    {
-        var display = new String();
-        display = "<table cellspacing='5'>";
-        display += "<tr><th>Equation</th></tr>\n";
+    <head>
+        <title>Symbolic Math - Gravity</title>
+        <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=MML_HTMLorMML"></script>
+        <script src="http://d3js.org/d3.v3.min.js"></script>
+        <script src="SymbolicMath.js"></script>
+        <script type="text/javascript">
+        function initPage() {
+            var display = new String();
+            display = "<table cellspacing='5'>";
+            display += "<tr><th>Equation</th></tr>\n";
 
-        // want to know time and velocity at distance travelled - note this is 
-        // entirely independent of mass
-        // D = 1/2 A t^2
-        // V = A t
-        // given D -> t = Sqrt (2 D / A), V = A (2 D / A) ^ 0.5
-        var t_at_d = SM.Sqrt (SM.Divide (SM.Multiply ("d", 2.0), "a"));
-        var v_at_d = SM.Multiply ("a", t_at_d);
-        var t = t_at_d.N ({ d : 1.0, a : SM.namedConstants.g });
-        var v = v_at_d.N ({ d : 1.0, a : SM.namedConstants.g });
-        console.log ("time at arrest: " + t);
-        console.log ("velocity at arrest: " + v);
-        {
-            // now evaluate the function
-            var sampler = new Sampler ();
-            sampler.domain = ["d", 0.0, 1.5];
-            sampler.values["a"] = SM.namedConstants.g;
-            var graphData = sampler.Evaluate (v_at_d);
+            // want to know time and velocity at distance travelled - note this is
+            // entirely independent of mass
+            // D = 1/2 A t^2
+            // V = A t
+            // given D -> t = Sqrt (2 D / A), V = A (2 D / A) ^ 0.5
+            var t_at_d = SM.Sqrt(SM.Divide(SM.Multiply("d", 2.0), "a"));
+            var v_at_d = SM.Multiply("a", t_at_d);
+            var t = t_at_d.N({ d: 1.0, a: SM.namedConstants.g });
+            var v = v_at_d.N({ d: 1.0, a: SM.namedConstants.g });
+            console.log("time at arrest: " + t);
+            console.log("velocity at arrest: " + v);
+            {
+                // now evaluate the function
+                var sampler = new Sampler();
+                sampler.domain = { name: "d", from: 0.0, to: 1.5 };
+                sampler.values["a"] = SM.namedConstants.g;
+                var graphData = sampler.Evaluate(v_at_d);
 
-            var plot = new Plot ();
-            plot.title = "Velocity at Distance falling";
-            plot.xAxisTitle = "Distance (m)";
-            plot.yAxisTitle = "Velocity (m s^-1)";
-            plot.FromGraphData (graphData);
+                var plot = new Plot();
+                plot.title = "Velocity at Distance falling";
+                plot.xAxisTitle = "Distance (m)";
+                plot.yAxisTitle = "Velocity (m s^-1)";
+                plot.FromGraphData(graphData);
+            }
+
+            // the amount of force required to stop this object is dependent on mass
+            // f in Newtons, 1 N = (1 Kg m)/s^2
+            // a = -v/t
+
+            // the amount of force required to stop a 1kg weight after falling 1m is
+            // f = m a where a is applied over some time
+
+            //if it's
+            // applied over a period of time (assuming uniform application)
+            // A = F / m
+            // V = A t -> V = F t / m
+            // F = m V / t
+            var F_at_t = SM.Multiply("m", "v").Divide("t");
+            {
+                // now evaluate the function
+                var sampler = new Sampler();
+                sampler.domain = { name: "t", from: 1.0e-2, to: 0.25 };
+                sampler.values["m"] = 1;
+                sampler.values["v"] = v;
+                var graphData = sampler.Evaluate(F_at_t);
+
+                var plot = new Plot();
+                plot.title = "Force at stop time";
+                plot.xAxisTitle = "Time (s)";
+                plot.yAxisTitle = "Force (N)";
+                plot.FromGraphData(graphData);
+            }
+
+            // now change it around so that we say that 1m of rope is allowed to stretch
+            // by 5%, so the stop distance must be no more than 0.05m
+            // velocity change must be -v, over a time t, such that the distance travelled
+            // is some amount d
+            // d = v t + -1/2 f t^2 / m
+            var d_at_t = SM.Multiply(2, "m", SM.Subtract(SM.Multiply("v", "t"), "d")).Divide(SM.Power("t", 2));
+            var F_at_t_B = SM.Multiply(2, "m", SM.Subtract(SM.Multiply("v", "t"), "d")).Divide(SM.Power("t", 2));
+            {
+                // now evaluate the function
+                var sampler = new Sampler();
+                sampler.domain = { name: "t", from: 1.0e-2, to: 1.0 };
+                sampler.values["m"] = 1;
+                sampler.values["v"] = v;
+                sampler.values["d"] = 0.05;
+                var graphData = sampler.Evaluate(F_at_t_B);
+
+                var plot = new Plot();
+                plot.title = "Force at stop time";
+                plot.xAxisTitle = "Time (s)";
+                plot.yAxisTitle = "Force (N)";
+                plot.FromGraphData(graphData);
+            }
         }
-        
-        // the amount of force required to stop this object is dependent on mass
-        // f in Newtons, 1 N = (1 Kg m)/s^2
-        // a = -v/t
-        
-        // the amount of force required to stop a 1kg weight after falling 1m is
-        // f = m a where a is applied over some time
-        
-        //if it's
-        // applied over a period of time (assuming uniform application)
-        // A = F / m
-        // V = A t -> V = F t / m
-        // F = m V / t
-        var F_at_t = SM.Multiply ("m", "v").Divide ("t");
-        {
-            // now evaluate the function
-            var sampler = new Sampler ();
-            sampler.domain = ["t", 1.0e-2, 0.25];
-            sampler.values["m"] = 1;
-            sampler.values["v"] = v;
-            var graphData = sampler.Evaluate (F_at_t);
 
-            var plot = new Plot ();
-            plot.title = "Force at stop time";
-            plot.xAxisTitle = "Time (s)";
-            plot.yAxisTitle = "Force (N)";
-            plot.FromGraphData (graphData);
-        }
-        
-        // now change it around so that we say that 1m of rope is allowed to stretch
-        // by 5%, so the stop distance must be no more than 0.05m
-        // velocity change must be -v, over a time t, such that the distance travelled
-        // is some amount d
-        // d = v t + -1/2 f t^2 / m
-        var d_at_t = SM.Multiply (2, "m", SM.Subtract (SM.Multiply ("v", "t"), "d")).Divide (SM.Power ("t", 2));
-        var F_at_t_B = SM.Multiply (2, "m", SM.Subtract (SM.Multiply ("v", "t"), "d")).Divide (SM.Power ("t", 2));
-        {
-            // now evaluate the function
-            var sampler = new Sampler ();
-            sampler.domain = ["t", 1.0e-2, 1.0];
-            sampler.values["m"] = 1;
-            sampler.values["v"] = v;
-            sampler.values["d"] = 0.05;
-            var graphData = sampler.Evaluate (F_at_t_B);
-
-            var plot = new Plot ();
-            plot.title = "Force at stop time";
-            plot.xAxisTitle = "Time (s)";
-            plot.yAxisTitle = "Force (N)";
-            plot.FromGraphData (graphData);
-        }
-    }
-    
-</script> </body>
+        </script> 
+    </head>
+    <body onload="initPage();">
+        <div id="display"></div>
+    </body>
 </html>

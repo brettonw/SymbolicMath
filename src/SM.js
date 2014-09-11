@@ -79,8 +79,8 @@ SM.Plot = function(graphData) {
 };
 
 SM.namedConstants = {
-    MATH_PI             : 3.1415926535897932385,    // Pi
-    e                   : 2.718281828459045,        // e
+    MATH_PI             : Math.PI,                  // Pi (3.1415926535897932385)
+    e                   : Math.E,                   // e (2.718281828459045)
     h                   : 6.62606957e-34,	        // Planck Constant - J s
     k                   : 1.3806488e-23,            // Boltzmann Constant - J K^-1
     c                   : 2.99792458e+08,           // speed of light - m s^-1

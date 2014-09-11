@@ -5,9 +5,11 @@ var DEBUG_LEVEL = { TRC: 0, DBG: 1, INF: 2, ERR: 3, SLN: 4 }
 var globalDebugLevel = DEBUG_LEVEL.DBG;
 function debugOut(level, from, msg) {
     if (level >= globalDebugLevel) {
+        var output = from + ": " + msg;
         var debugDiv = document.getElementById("debugOut");
         if (debugDiv != null) {
             debugDiv.innerHTML += from + ": " + msg + "<br />\n";
         }
+        console.log(output);
     }
 }

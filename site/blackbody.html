@@ -2,23 +2,11 @@
 <html>
     <head>
         <title>Symbolic Math - Blackbody</title>
-        <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        <script type="text/javascript" src="SymbolicMath.js"></script>
-        <script type="text/javascript" src="d3.v3.js" charset="utf-8"></script>
-        <script type="text/javascript">
-    (function () {
-        //  When the renderer changes, ask the MathMenu to change
-        //  the renderer (this way we get any warning messages
-        window.setMathRenderingMode = function (renderer) {
-            MathJax.Hub.config.MathMenu.settings.renderer = renderer;
-            MathJax.Menu.Renderer.call(this);
-        };
-    })()
-        </script>
+        <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=MML_HTMLorMML"></script>
+        <script src="http://d3js.org/d3.v3.min.js"></script>
+        <script src="SymbolicMath.js"></script>
         <script type="text/javascript">
         function initPage() {
-            window.setMathRenderingMode("HTML-CSS");
-
             var display = new String();
             display = "<table cellspacing='5'>";
             display += "<tr><th>Equation</th></tr>\n<tr>";
@@ -27,17 +15,10 @@
             var hc2 = SM.Multiply(2.0, "h", "c", "c");
             var exp = SM.Multiply("h", "c").Divide(SM.Multiply("&lambda;", "k", "T"));
             var L = (hc2.Divide(SM.Power("&lambda;", 5).Multiply(SM.Exp(exp).Subtract(1)))).Multiply(1.0e-9);
-            /*
-            display += "<td>" + L.toString() + "</td>\n";
-            display += "<td> = </td>\n";
-            */
             L = L.Simplify();
             display += "<td>" + L.toString() + "</td>\n";
-
             display += "</tr></table></br>\n";
-
             document.getElementById("display").innerHTML = display;
-            MathJax.Hub.Typeset();
 
 
             // now evaluate the function
@@ -45,7 +26,7 @@
             sampler.values = {
                 T: 5777              // Color Temperature - degrees K
             };
-            sampler.domain = ["&lambda;", 220.0 * 1.0e-9, 1880 * 1.0e-9];
+            sampler.domain = { name: "&lambda;", from: 220.0 * 1.0e-9, to: 1880 * 1.0e-9 };
             var graphData = sampler.Evaluate(L);
 
             var plot = new Plot();

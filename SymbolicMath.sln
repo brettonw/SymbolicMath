@@ -30,6 +30,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{4285032A-EF1
 		src\Debug.js = src\Debug.js
 		src\Divide.js = src\Divide.js
 		src\Expr.js = src\Expr.js
+		src\Integrator.js = src\Integrator.js
 		src\Logarithm.js = src\Logarithm.js
 		src\macros.h = src\macros.h
 		src\Multiply.js = src\Multiply.js

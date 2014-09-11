@@ -53,7 +53,7 @@ Multiply.Render = function(enclose) {
     var count = this.children.length;
     for (var i = 1; i < count; ++i)
     {
-        // invisible multiplication operator
+        // invisible multiplication operator (a short space)
         result += "<mo>&#x2009;</mo>" + this.children[i].Render(true);
         //result += "<mo>&#x2715;</mo>" + this.children[i].Render(true);
     }

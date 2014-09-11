@@ -1,0 +1,82 @@
+<project name="Common" default="rel" basedir=".">
+    <property name="source-dir" value="src"/>
+    <property name="build-dir" value="build"/>
+    <property name="site-dir" value="site"/>
+
+    <target name="dev" depends="dev-init, js-copy" description="Development build"/>
+
+    <target name="dev-init">
+        <property name="final-target" value="${dev-target}"/>
+        <property name="js-preprocess-switches" value="-DDEBUG"/>
+    </target>
+
+    <target name="rel" depends="rel-init, js-minify" description="Release build"/>
+
+    <target name="rel-init">
+        <property name="final-target" value="${rel-target}"/>
+        <property name="js-preprocess-switches" value="-DRELEASE"/>
+    </target>
+
+	 <condition property="is-windows">
+		<os family="windows" />
+	 </condition>
+
+    <target name="init-windows" if="is-windows">
+        <property file="${build-tools-dir}/windows.ant.properties"/>
+    </target>
+
+	 <condition property="is-unix">
+		<os family="unix" />
+	 </condition>
+
+    <target name="init-unix" if="is-unix">
+        <property file="${build-tools-dir}/unix.ant.properties"/>
+    </target>
+
+    <target name="init" depends="init-windows, init-unix">
+        <tstamp/>
+        <mkdir dir="${build-dir}"/>
+        <property file="${build-tools-dir}/ant.properties"/>
+    </target>
+
+    <target name="js-preprocess-windows" if="is-windows">
+        <exec executable="${cpp}">
+            <arg value="-P"/>
+            <arg value="${js-preprocess-switches}"/>
+            <arg value="${build-dir}/${concat-target}"/>
+            <arg value="${build-dir}/${preprocess-target}"/>
+        </exec>
+    </target>
+
+    <target name="js-preprocess-unix" if="is-unix">
+        <exec executable="${gcc}">
+            <arg value="-E"/>
+            <arg value="-P"/>
+            <arg value="-xc++"/>
+            <arg value="${js-preprocess-switches}"/>
+            <arg value="-o${build-dir}/${preprocess-target}"/>
+            <arg value="${build-dir}/${concat-target}"/>
+        </exec>
+    </target>
+
+    <target name="js-preprocess" depends="js-concatenate, js-preprocess-windows, js-preprocess-unix">
+    </target>
+
+    <target name="js-copy" depends="js-preprocess">
+        <copy file="${build-dir}/${preprocess-target}" tofile="${site-dir}/${final-target}"/>
+    </target>
+
+    <target name="js-minify" depends="js-preprocess">
+        <java jar="${build-tools-dir}/${yui-compressor.jar}" fork="true">
+            <arg value="-o"/>
+            <arg value="${site-dir}/${final-target}"/>
+            <arg value="${build-dir}/${preprocess-target}"/>
+        </java>
+    </target>
+
+    <target name="clean" description="Remove all artifacts of the build process" >
+        <delete dir="${build-dir}"/>
+        <delete file="${site-dir}/${dev-target}"/>
+        <delete file="${site-dir}/${rel-target}"/>
+    </target>
+</project>

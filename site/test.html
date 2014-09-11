@@ -2,18 +2,9 @@
 <html>
     <head>
         <title>Symbolic Math - Test Page</title>
-        <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        <script type="text/javascript" src="SymbolicMath-debug.js"></script>
-        <script type="text/javascript">
-            (function () {
-                //  When the renderer changes, ask the MathMenu to change
-                //  the renderer (this way we get any warning messages
-                window.setMathRenderingMode = function (renderer) {
-                    MathJax.Hub.config.MathMenu.settings.renderer = renderer;
-                    MathJax.Menu.Renderer.call(this);
-                };
-            })()
-        </script>
+        <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=MML_HTMLorMML"></script>
+        <script src="http://d3js.org/d3.v3.min.js"></script>
+        <script src="SymbolicMath.js"></script>
         <script type="text/javascript">
             var values = { x: 4.0, a: 2.0 };
             var display = new String();
@@ -275,6 +266,5 @@
     </head>
     <body onload="initPage();">
         <div id="display">display</div>
-        <div id="debugOut">Debug Output<br /></div>
     </body>
 </html>
