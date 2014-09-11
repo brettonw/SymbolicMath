@@ -10,7 +10,7 @@ function Plot ()
     
     this.FromGraphData = function (graphData) 
     {
-        debugOut (DEBUG_LEVEL.DBG, "FromGraphData", "graphData.length = " + graphData.length);
+        DEBUG_OUT(DEBUG_LEVEL.DBG, "FromGraphData", "graphData.length = " + graphData.length);
 
         // a function to compute the order of magintude of a number, to use
         // for scaling

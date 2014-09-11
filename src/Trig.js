@@ -11,7 +11,7 @@ Cos.D = function(values) {
 };
 
 Cos.Render = function(enclose) {
-    return "Cos (" + _X.Render(false) + ")";
+    return "<mi>cos</mi><mrow><mo>(</mo>" + _X.Render(false) + "<mo>)</mo></mrow>";
 };
 
 DERIVE_EXPR_ALIAS(Sin,Function)

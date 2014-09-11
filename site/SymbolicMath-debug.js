@@ -1,4 +1,14 @@
 "use strict";
+var DEBUG_LEVEL = { TRC: 0, DBG: 1, INF: 2, ERR: 3, SLN: 4 }
+var globalDebugLevel = DEBUG_LEVEL.DBG;
+function debugOut(from, msg) {
+    var output = from + ": " + msg;
+    var debugDiv = document.getElementById("debugOut");
+    if (debugDiv != null) {
+        debugDiv.innerHTML += from + ": " + msg + "<br />\n";
+    }
+    console.log(output);
+}
 var Expr = Object.create(null);
 Expr.MakeExpr = function(a) {
     var typeofa = typeof(a);
@@ -196,7 +206,7 @@ Add.Simplify = function() {
                         ++i;
                     }
                 } else {
-        debugOut (DEBUG_LEVEL.DBG, "Add.Simplify.collectTerms", "Skipping term");
+        if (DEBUG_LEVEL.DBG >= globalDebugLevel) { debugOut ("Add.Simplify.collectTerms", "Skipping term"); };
                     ++i;
                 }
             } else if (child.typename == "Power") {
@@ -252,14 +262,14 @@ Multiply.D = function(values) {
             var term = (i == j) ? this.children[j].D(values) : this.children[j];
             m.Accumulate (term);
         }
-        debugOut (DEBUG_LEVEL.DBG, "Multiply.D", "m = " + m.toString ());
+        if (DEBUG_LEVEL.DBG >= globalDebugLevel) { debugOut ("Multiply.D", "m = " + m.toString ()); };
         m = m.Simplify ();
-        debugOut (DEBUG_LEVEL.DBG, "Multiply.D", "m (simplified) = " + m.toString ());
+        if (DEBUG_LEVEL.DBG >= globalDebugLevel) { debugOut ("Multiply.D", "m (simplified) = " + m.toString ()); };
         d.Accumulate (m);
     }
-    debugOut (DEBUG_LEVEL.DBG, "Multiply.D", "d = " + d.toString ());
+    if (DEBUG_LEVEL.DBG >= globalDebugLevel) { debugOut ("Multiply.D", "d = " + d.toString ()); };
     d = d.Simplify ();
-    debugOut (DEBUG_LEVEL.DBG, "Multiply.D", "d (simplified) = " + d.toString ());
+    if (DEBUG_LEVEL.DBG >= globalDebugLevel) { debugOut ("Multiply.D", "d (simplified) = " + d.toString ()); };
     return d;
 };
 Multiply.Render = function(enclose) {
@@ -470,7 +480,7 @@ Cos.D = function(values) {
     return d.Simplify ();
 };
 Cos.Render = function(enclose) {
-    return "Cos (" + this.children[0].Render(false) + ")";
+    return "<mi>cos</mi><mrow><mo>(</mo>" + this.children[0].Render(false) + "<mo>)</mo></mrow>";
 };
 var Sin = Object.create(Expr, { typename : { value : "Function", writable : false, configurable : false, enumerable : true }})
 Sin.N = function(values) {
@@ -516,7 +526,7 @@ function Plot ()
     this.yAxisTitle = null;
     this.FromGraphData = function (graphData)
     {
-        debugOut (DEBUG_LEVEL.DBG, "FromGraphData", "graphData.length = " + graphData.length);
+        if (DEBUG_LEVEL.DBG >= globalDebugLevel) { debugOut ("FromGraphData", "graphData.length = " + graphData.length); };
         var ComputeOrderOfMagnitude = function (number) {
             number = Math.max (Math.abs (number), 1.0e-6);
             var order = 0;
@@ -691,7 +701,7 @@ function Sampler ()
     this.sampleCount = 32;
     this.minRecursion = 2;
     this.maxRecursion = 12;
-    this.errorToleranceDistance = 1.0e-2;
+    this.errorToleranceDistance = 1.0e-3;
     this.errorToleranceSlope = 1.0e-3;
     this.Evaluate = function (expr)
     {
@@ -705,23 +715,24 @@ function Sampler ()
             var y1 = d1.N (scope.values);
             return { x : x, y : y, y1 : y1 };
         };
-        var distanceToPoint = function (A, B, C) {
-            var a = -(B.y - A.y);
-            var b = (B.x - A.x);
-            var c = -((a * A.x) + (b * A.y));
-            var d = (a * C.x) + (b * C.y) + c;
-            return d;
-        }
         var evaluatePair = function (A, B, rec) {
             if (rec < scope.maxRecursion) {
-                var sampleSlopeError = function (A, B, C) {
-                    var dydxEstimated = (A.y1 + B.y1) / 2.0;
-                    var error = Math.abs((C.y1 / dydxEstimated) - 1);
-                    debugOut (DEBUG_LEVEL.DBG, "Sampler.Evaluate.evaluatePair", "error = " + error);
+                var sampleErrorSlope = function (A, B, C) {
+                    var dydxAverage = (A.y1 + B.y1) / 2.0;
+                    var error = Math.abs((C.y1 / dydxAverage) - 1);
+                    if (DEBUG_LEVEL.TRC >= globalDebugLevel) { debugOut ("Sampler.Evaluate.sampleErrorSlope", ((error > scope.errorToleranceSlope) ? "FAIL" : "pass") + ", error = " + error); };
                     return error;
                 }
+                var sampleErrorDistance = function (A, B, C) {
+                    var a = -(B.y - A.y);
+                    var b = (B.x - A.x);
+                    var c = -((a * A.x) + (b * A.y));
+                    var d = Math.abs ((a * C.x) + (b * C.y) + c);
+                    if (DEBUG_LEVEL.TRC >= globalDebugLevel) { debugOut ("Sampler.Evaluate.sampleErrorDistance", ((d > scope.errorToleranceDistance) ? "FAIL" : "pass") + ", d = " + d); };
+                    return d;
+                }
                 var C = evaluateExpr((A.x + B.x) / 2.0);
-                if ((rec < scope.minRecursion) || (distanceToPoint(A, B, C) > scope.errorToleranceDistance) || (sampleSlopeError (A, B, C) > scope.errorToleranceSlope)) {
+                if ((rec < scope.minRecursion) || (sampleErrorSlope (A, B, C) > scope.errorToleranceSlope) || (sampleErrorDistance(A, B, C) > scope.errorToleranceDistance)) {
                     var AC = evaluatePair(A, C, rec + 1);
                     var CB = evaluatePair(C, B, rec + 1);
                     var ACB = AC.concat(CB);
@@ -833,15 +844,3 @@ SM.namedConstants = {
     c : 2.99792458e+08,
     g : 9.80665
 };
-var DEBUG_LEVEL = { TRC: 0, DBG: 1, INF: 2, ERR: 3, SLN: 4 }
-var globalDebugLevel = DEBUG_LEVEL.DBG;
-function debugOut(level, from, msg) {
-    if (level >= globalDebugLevel) {
-        var output = from + ": " + msg;
-        var debugDiv = document.getElementById("debugOut");
-        if (debugDiv != null) {
-            debugDiv.innerHTML += from + ": " + msg + "<br />\n";
-        }
-        console.log(output);
-    }
-}

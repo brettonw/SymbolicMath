@@ -132,7 +132,7 @@ Add.Simplify = function() {
                         ++i;
                     }
                 } else {
-        debugOut (DEBUG_LEVEL.DBG, "Add.Simplify.collectTerms", "Skipping term");
+        DEBUG_OUT(DEBUG_LEVEL.DBG, "Add.Simplify.collectTerms", "Skipping term");
                     ++i;
                 }
             } else if (child.typename == "Power") {

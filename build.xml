@@ -15,8 +15,9 @@
 
     <target name="js-concatenate" depends="init">
         <concat destfile="${build-dir}/${concat-target}">
-            <!-- file order is important, at least for the first two files -->
+            <!-- file order is important, at least for the first three files -->
             <fileset dir="${source-dir}" includes="macros.h" />
+            <fileset dir="${source-dir}" includes="Debug.js" />
             <fileset dir="${source-dir}" includes="Expr.js" />
             <fileset dir="${source-dir}" includes="Constant.js" />
             <fileset dir="${source-dir}" includes="Variable.js" />
@@ -31,7 +32,6 @@
             <fileset dir="${source-dir}" includes="Sampler.js" />
             <fileset dir="${source-dir}" includes="Integrator.js" />
             <fileset dir="${source-dir}" includes="SM.js" />
-            <fileset dir="${source-dir}" includes="Debug.js" />
         </concat>
     </target>
 </project>

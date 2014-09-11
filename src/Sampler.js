@@ -5,7 +5,7 @@ function Sampler ()
     this.sampleCount = 32;
     this.minRecursion = 2;          // bisection, so 2^2 = 4
     this.maxRecursion = 12;         // bisection, so 2^11 = 2048
-    this.errorToleranceDistance = 1.0e-2;
+    this.errorToleranceDistance = 1.0e-3;
     this.errorToleranceSlope = 1.0e-3;
     
     this.Evaluate = function (expr)
@@ -30,22 +30,6 @@ function Sampler ()
             return { x : x, y : y, y1 : y1 };
         };
         
-        // for the line AB, compute how far off the line C is
-        var distanceToPoint = function (A, B, C) {
-            // compute the line equation
-            var a = -(B.y - A.y);
-            var b = (B.x - A.x);
-            var c = -((a * A.x) + (b * A.y));
-
-            // compute the distance, relative to the length of AB
-            var d = (a * C.x) + (b * C.y) + c;
-
-            // if we want the distance in absolute terms...
-            //d /= Math.sqrt((a * a) + (b * b));
-
-            return d;
-        }
-
         // given two samples, A and B, evaluate whether to subdivide the line
         // between them by computing several accuracy metrics:
         //   A) compare the average slope (by examinining the first derivative 
@@ -59,15 +43,32 @@ function Sampler ()
         // of the the range. 
         var evaluatePair = function (A, B, rec) {
             if (rec < scope.maxRecursion) {
-                var sampleSlopeError = function (A, B, C) {
-                    var dydxEstimated = (A.y1 + B.y1) / 2.0;
-                    var error = Math.abs((C.y1 / dydxEstimated) - 1);
-                    debugOut (DEBUG_LEVEL.DBG, "Sampler.Evaluate.evaluatePair", "error = " + error);
+                // (A) above
+                var sampleErrorSlope = function (A, B, C) {
+                    // average the computed slope at the end points
+                    var dydxAverage = (A.y1 + B.y1) / 2.0;
+
+                    // compare that to the computed slope
+                    var error = Math.abs((C.y1 / dydxAverage) - 1);
+                    DEBUG_OUT (DEBUG_LEVEL.TRC, "Sampler.Evaluate.sampleErrorSlope", ((error > scope.errorToleranceSlope) ? "FAIL" : "pass") + ", error = " + error);
                     return error;
                 }
 
+                // (B) above
+                var sampleErrorDistance = function (A, B, C) {
+                    // compute the line equation
+                    var a = -(B.y - A.y);
+                    var b = (B.x - A.x);
+                    var c = -((a * A.x) + (b * A.y));
+
+                    // compute the distance, relative to the length of AB
+                    var d = Math.abs ((a * C.x) + (b * C.y) + c);
+                    DEBUG_OUT (DEBUG_LEVEL.TRC, "Sampler.Evaluate.sampleErrorDistance", ((d > scope.errorToleranceDistance) ? "FAIL" : "pass") + ", d = " + d);
+                    return d;
+                }
+
                 var C = evaluateExpr((A.x + B.x) / 2.0);
-                if ((rec < scope.minRecursion) OR (distanceToPoint(A, B, C) > scope.errorToleranceDistance) OR (sampleSlopeError (A, B, C) > scope.errorToleranceSlope)) {
+                if ((rec < scope.minRecursion) OR (sampleErrorSlope (A, B, C) > scope.errorToleranceSlope) OR (sampleErrorDistance(A, B, C) > scope.errorToleranceDistance)) {
                     var AC = evaluatePair(A, C, rec + 1);
                     var CB = evaluatePair(C, B, rec + 1);
                     var ACB = AC.concat(CB);
