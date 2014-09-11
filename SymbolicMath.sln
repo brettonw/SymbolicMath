@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2013 for Web
+VisualStudioVersion = 12.0.30723.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "site", "site", "{C41D8DA8-765A-46F6-B787-317327000213}"
+	ProjectSection(SolutionItems) = preProject
+		site\blackbody.html = site\blackbody.html
+		site\d3.v2.js = site\d3.v2.js
+		site\d3.v2.min.js = site\d3.v2.min.js
+		site\d3.v3.js = site\d3.v3.js
+		site\d3.v3.min.js = site\d3.v3.min.js
+		site\e.html = site\e.html
+		site\gravity.html = site\gravity.html
+		site\index.html = site\index.html
+		site\integration.html = site\integration.html
+		site\sin.html = site\sin.html
+		site\SymbolicMath-debug.js = site\SymbolicMath-debug.js
+		site\SymbolicMath.js = site\SymbolicMath.js
+		site\test-MultiplyDerivative.html = site\test-MultiplyDerivative.html
+		site\test.html = site\test.html
+		site\testMathML.html = site\testMathML.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{4285032A-EF1B-4A79-AE1B-7D99481B6229}"
+	ProjectSection(SolutionItems) = preProject
+		src\Add.js = src\Add.js
+		src\BigNumber.js = src\BigNumber.js
+		src\Constant.js = src\Constant.js
+		src\Debug.js = src\Debug.js
+		src\Divide.js = src\Divide.js
+		src\Expr.js = src\Expr.js
+		src\Logarithm.js = src\Logarithm.js
+		src\macros.h = src\macros.h
+		src\Multiply.js = src\Multiply.js
+		src\Plot.js = src\Plot.js
+		src\Power.js = src\Power.js
+		src\RenderExpr.js = src\RenderExpr.js
+		src\Sampler.js = src\Sampler.js
+		src\SM.js = src\SM.js
+		src\SquareRoot.js = src\SquareRoot.js
+		src\Trig.js = src\Trig.js
+		src\Variable.js = src\Variable.js
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{45EAEDAB-73FD-45D2-9472-8588B061D70E}"
+	ProjectSection(SolutionItems) = preProject
+		build.xml = build.xml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

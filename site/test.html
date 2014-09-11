@@ -1,0 +1,280 @@
+<!doctype html> 
+<html>
+    <head>
+        <title>Symbolic Math - Test Page</title>
+        <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/javascript" src="SymbolicMath-debug.js"></script>
+        <script type="text/javascript">
+            (function () {
+                //  When the renderer changes, ask the MathMenu to change
+                //  the renderer (this way we get any warning messages
+                window.setMathRenderingMode = function (renderer) {
+                    MathJax.Hub.config.MathMenu.settings.renderer = renderer;
+                    MathJax.Menu.Renderer.call(this);
+                };
+            })()
+        </script>
+        <script type="text/javascript">
+            var values = { x: 4.0, a: 2.0 };
+            var display = new String();
+            var haltOnFail = false;
+
+            function Round(value, significance)
+            {
+                var multiplier = Math.pow (10, significance);
+                var scaledValue = value * multiplier;
+                scaledValue = Math.floor (scaledValue);
+                return (scaledValue / multiplier).toString ();
+                //return value.toString ();
+            }
+
+            function Test2(name, equationA, equationB, expected) {
+                var result = Round(equationB.N(values), 6);
+                var expect = Round(expected, 6);
+                var test = (result == expect);
+                display += "<tr height='30px'><td>" + name + "</td><td bgcolor='#f0f0f0'>" + equationA.toString() + "</td><td bgcolor='#f0f0f0'>" + equationB.toString() + "</td><td>=</td><td align='right' bgcolor='#f0f0f0'>" + result + "</td><td align='right' bgcolor='#f0f0f0'>" + expect + "</td><td><div style='height:30px;width:60px;text-align:center;line-height:30px;vertical-align:middle;" + (test ? "color: black;background-color: #80ff80'>PASS" : "color: white;background-color: red'>FAIL") + "</div></td></tr>\n";
+                document.getElementById("display").innerHTML = display + "</table></br>\n";
+                return test;
+            }
+
+            function Test(name, equation, expected) {
+                return Test2 (name, "", equation, expected);
+            }
+
+            function initPage()
+            {
+                display = "Test Results:<br>\n<table cellspacing='5'>";
+                display += "<tr height='30px'><th>Name</th><th>Pre</th><th>Equation</th><th></th><th>Result</th><th>Expect</th><th>Test</th></tr>\n";
+
+                var pass = true;
+
+                // test addition
+                if (pass || (! haltOnFail))
+                {
+                    var equation = SM.Add (3.5, "x");
+                    equation.Simplify ();
+                    pass &= Test ("Addition", equation, 3.5 + values.x);
+                }
+
+                // test subtraction
+                if (pass || (! haltOnFail))
+                {
+                    var equation = SM.Subtract (3.5, "x");
+                    pass &= Test ("Subtraction", equation, 3.5 - values.x);
+                }
+
+                // test multiplication
+                if (pass || (! haltOnFail))
+                {
+                    var equation = SM.Multiply (3.5, "x");
+                    pass &= Test ("Multiplication", equation, 3.5 * values.x);
+                }
+
+                // test division
+                if (pass || (! haltOnFail))
+                {
+                    var equation = SM.Divide (3.5, "x");
+                    pass &= Test ("Division", equation, 3.5 / values.x);
+                }
+
+                // test power
+                if (pass || (! haltOnFail))
+                {
+                    var equation = SM.Power (3.5, "x");
+                    pass &= Test ("Power", equation, Math.pow (3.5, values.x));
+                }
+
+                // test chaining
+                if (pass || (! haltOnFail))
+                {
+                    var equation = SM.Add (3.5, "x").Multiply (3.5).Subtract (2.0).Divide (2.0);
+                    pass &= Test ("Chaining", equation, (((3.5 + values.x) * 3.5) + (-1 * 2)) / 2);
+                }
+
+                // test something more complicated
+                if (pass || (! haltOnFail))
+                {
+                    var equation = SM.Divide (SM.Multiply (3.5, SM.Add (3.5, 5.1).Add(SM.Power ("x", 3.5))), 2.0);
+                    pass &= Test ("Complicated", equation, (3.5 * (3.5 + 5.1 + Math.pow (values.x, 3.5))) / 2.0);
+                }
+
+                // test simplification
+                if (pass || (! haltOnFail))
+                {
+                    var equation = SM.Add (2.0, 3.5, "x").Add (0);
+                    var simplified = equation.Simplify();
+                    pass &= Test2("Simplify +", equation, simplified, 2.0 + 3.5 + values.x + 0);
+                }
+
+                if (pass || (! haltOnFail))
+                {
+                    var equation = SM.Multiply (2.0, 3.5, "x");
+                    var simplified = equation.Simplify();
+                    pass &= Test2("Simplify *", equation, simplified, 2.0 * 3.5 * values.x);
+                }
+
+                if (pass || (! haltOnFail))
+                {
+                    var equation = SM.Multiply (2.0, 3.5, "x").Multiply (0);
+                    var simplified = equation.Simplify();
+                    pass &= Test2("Simplify * 2", equation, simplified, 2.0 * 3.5 * values.x * 0);
+                }
+
+                if (pass || (! haltOnFail))
+                {
+                    var equation = SM.Expr ("x").Power (2.0).Multiply (5.0).Divide (3.0);
+                    var simplified = equation.Simplify();
+                    pass &= Test2("Simplify Complicated", equation, simplified, Math.pow(values.x, 2.0) * 5.0 / 3.0);
+                }
+
+                if (pass || (! haltOnFail))
+                {
+                    var equation = SM.Add (3.5, "x").Multiply (3.5).Subtract (2.0).Divide (2.0);
+                    var simplified = equation.Simplify();
+                    pass &= Test2("Chaining", equation, simplified, (((3.5 + values.x) * 3.5) + (-1 * 2)) / 2);
+                }
+
+                if (pass || (! haltOnFail))
+                {
+                    var equation = SM.Add ("x").Add ("x").Add ("x").Add ("x").Add ("x").Add (SM.Multiply ("x", "x")).Add (SM.Multiply ("x", "x"));
+                    var simplified = equation.Simplify ();
+                    pass &= Test2("Simplify multiple terms", equation, simplified, (values.x * 5.0) + (values.x * values.x * 2.0));
+                }
+
+                if (pass || (! haltOnFail))
+                {
+                    var equation = SM.Divide (SM.Multiply (3.5, SM.Add (3.5, 5.1).Add(SM.Power ("x", 3.5))), 2.0);
+                    var simplified = equation.Simplify();
+                    pass &= Test2("Complicated", equation, simplified, (3.5 * (3.5 + 5.1 + Math.pow(values.x, 3.5))) / 2.0);
+                }
+
+                // test derivatives
+                if (pass || (!haltOnFail)) {
+                    var equation = SM.Power("x", 2.0);
+                    var before = equation.toString();
+                    //console.log ("before=" + before);
+                    var derivative = equation.D({ x: values.x });
+                    var after = equation.toString();
+                    //console.log ("after=" + after);
+                    if (before == after) {
+                        pass &= Test2("Derivative x^2", equation, derivative, values.x * 2.0);
+                    }
+                }
+
+                // test derivatives
+                if (pass || (!haltOnFail)) {
+                    var equation = SM.Multiply(5.0, SM.Power("x", 2.0));
+                    var before = equation.toString();
+                    //console.log ("before=" + before);
+                    var derivative = equation.D({ x: values.x });
+                    var after = equation.toString();
+                    //console.log ("after=" + after);
+                    if (before == after) {
+                        pass &= Test2("Derivative 5x^2", equation, derivative, values.x * 2.0 * 5.0);
+                    }
+                }
+
+                // test derivatives
+                if (pass || (!haltOnFail)) {
+                    var equation = SM.Multiply(2.0, 5.0, SM.Power("x", 2.0));
+                    var before = equation.toString();
+                    //console.log ("before=" + before);
+                    var derivative = equation.D({ x: values.x });
+                    var after = equation.toString();
+                    //console.log ("after=" + after);
+                    if (before == after) {
+                        pass &= Test2("Derivative 2 5x^2", equation, derivative, values.x * 2.0 * 2.0 * 5.0);
+                    }
+                }
+
+                // test derivatives
+                if (pass || (! haltOnFail)) {
+                    //var equation = SM.Expr("x").Power(2.0).Multiply(5.0);
+                    //var equation = SM.Multiply(5.0, SM.Expr("x").Power(2.0));
+                    var equation = SM.Multiply(2.0, 5.0, SM.Power("x", 2.0)).Add(SM.Multiply(3.0, "x"));
+                    var before = equation.toString();
+                    //console.log ("before=" + before);
+                    var derivative = equation.D(values);
+                    var after = equation.toString();
+                    //console.log ("after=" + after);
+                    if (before == after) {
+                        pass &= Test2("Derivative", equation, derivative, (values.x * 2.0 * 5.0 * 2.0) + 3.0);
+                    }
+                }
+
+                // test a simplify on multiplication
+                if (pass || (!haltOnFail)) {
+                    var equation = SM.Multiply("a", 10.0, "x");
+                    var before = equation.toString();
+                    //console.log ("before=" + before);
+                    var simplified = equation.Simplify();
+                    var after = equation.toString();
+                    //console.log ("after=" + after);
+                    if (before == after) {
+                        pass &= Test2("Simplify 10 a x (a is constant)", equation, simplified, values.x * values.a * 10.0);
+                    }
+                }
+
+                // test a simplify on multiplication with a zero add
+                if (pass || (!haltOnFail)) {
+                    var equation = SM.Add (SM.Multiply("a", 10.0, "x"), 0, 0);
+                    var before = equation.toString();
+                    //console.log ("before=" + before);
+                    var simplified = equation.Simplify();
+                    var after = equation.toString();
+                    //console.log ("after=" + after);
+                    if (before == after) {
+                        pass &= Test2("Simplify 10 a x + 0 + 0 (a is constant)", equation, simplified, values.x * values.a * 10.0);
+                    }
+                }
+
+                // test derivatives
+                if (pass || (!haltOnFail)) {
+                    //var equation = SM.Expr("x").Power(2.0).Multiply(5.0);
+                    //var equation = SM.Multiply(5.0, SM.Expr("x").Power(2.0));
+                    var equation = SM.Multiply("a", 5.0, SM.Power("x", 2.0));
+                    var before = equation.toString();
+                    //console.log ("before=" + before);
+                    var derivative = equation.D({ x: values.x });
+                    var after = equation.toString();
+                    //console.log ("after=" + after);
+                    if (before == after) {
+                        pass &= Test2("Derivative (a = 2)", equation, derivative, values.x * values.a * 5.0 * 2.0);
+                    }
+                }
+
+                // test derivatives
+                if (pass || (!haltOnFail)) {
+                    //var equation = SM.Expr("x").Power(2.0).Multiply(5.0);
+                    //var equation = SM.Multiply(5.0, SM.Expr("x").Power(2.0));
+                    var equation = SM.Multiply("a", 5.0, SM.Power("x", 2.0)).Add(SM.Multiply(3.0, "x"));
+                    var before = equation.toString();
+                    //console.log ("before=" + before);
+                    var derivative = equation.D({ x: values.x });
+                    var after = equation.toString();
+                    //console.log ("after=" + after);
+                    if (before == after) {
+                        pass &= Test2("Derivative (a = 2)", equation, derivative, (values.x * values.a * 5.0 * 2.0) + 3.0);
+                    }
+                }
+
+                if (pass || (!haltOnFail))
+                {
+                    var equation = SM.Expr ("x").Power (2.0).Multiply (5.0).Divide (3.0);
+                    var before = equation.toString ();
+                    //console.log ("before=" + before);
+                    var derivative = equation.D(values);
+                    var after = equation.toString ();
+                    //console.log ("after=" + after);
+                    if (before == after) {
+                        pass &= Test2("Derivative", equation, derivative, values.x * 5.0 * 2.0 / 3.0);
+                    }
+                }
+            }
+        </script>
+    </head>
+    <body onload="initPage();">
+        <div id="display">display</div>
+        <div id="debugOut">Debug Output<br /></div>
+    </body>
+</html>

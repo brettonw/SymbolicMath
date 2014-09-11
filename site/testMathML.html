@@ -1,0 +1,36 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+    <title>Test MathML</title>
+</head>
+<body onload="initPage();">
+    <p>Rendering mode: &nbsp; <select id="Renderer" onchange="setMathRenderingMode(this.value)" style="margin: 0px 0px 0px">
+    <option value="NativeMML">MathML</option>
+    <option value="HTML-CSS">HTML-CSS</option>
+    <option value="SVG">SVG</option>
+    </select></p>
+
+    <div id="testDiv"></div>
+
+    <script type="text/javascript">
+        function initPage() {
+            window.setMathRenderingMode("HTML-CSS");
+            document.getElementById("testDiv").innerHTML = "<math display=\"block\"><mrow><mi>x</mi><mo>=</mo><mfrac><mrow><mo>&#x2212;</mo><mi>b</mi><mo>&#x00B1;</mo><msqrt><mrow><msup><mi>b</mi><mn>2</mn></msup><mo>&#x2212;</mo><mn>4</mn><mi>a</mi><mi>c</mi></mrow></msqrt></mrow><mrow><mn>2</mn><mi>a</mi></mrow></mfrac></mrow></math>";
+            MathJax.Hub.Typeset();
+        }
+
+        (function () {
+            window.setMathRenderingMode = function (renderer) {
+                MathJax.Hub.config.MathMenu.settings.renderer = renderer;
+                MathJax.Menu.Renderer.call(this);
+                document.getElementById("Renderer").value = renderer;
+            };
+        })()
+    </script>
+
+</body>
+</html>

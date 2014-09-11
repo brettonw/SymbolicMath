@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Symbolic Math - Integration</title>
+        <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/javascript" src="SymbolicMath-debug.js"></script>
+        <script type="text/javascript" src="d3.v3.js" charset="utf-8"></script>
+        <script type="text/javascript">
+        (function () {
+            //  When the renderer changes, ask the MathMenu to change
+            //  the renderer (this way we get any warning messages
+            window.setMathRenderingMode = function (renderer) {
+                MathJax.Hub.config.MathMenu.settings.renderer = renderer;
+                MathJax.Menu.Renderer.call(this);
+            };
+        })()
+        </script>
+        <script type="text/javascript">
+        function initPage() {
+            window.setMathRenderingMode("HTML-CSS");
+
+            var display = new String();
+            display = "<table cellspacing='5'>";
+            display += "<tr><th>Equations</th></tr>\n";
+
+            // create the sampler I'll use to build graphs
+            var sampler = new Sampler();
+            sampler.domain = ["t", 0.0, 2.0];
+            sampler.values["a"] = SM.namedConstants.g;
+            sampler.values["v"] = SM.namedConstants.g;
+
+            // want to plot time vs. altitude with an object given an initial upward
+            // velocity, and acted on by gravity (G=9.8M/s^2)
+            // H = V t + 1/2 A t^2
+            var v = SM.Expr("v");
+            var a = SM.Expr("a");
+            var t = SM.Expr("t");
+            var y_of_t = SM.Add(SM.Multiply(v, t), SM.Multiply(-0.5, a, SM.Power(t, 2.0)).Simplify());
+            var dValues = {};
+            dValues[sampler.domain[0]] = sampler.domain[1];
+            var d1 = y_of_t.D(dValues);
+            display += "<tr><td>" + y_of_t.toString() + "</td></tr>\n";
+            display += "<tr><td>" + d1.toString() + "</td></tr>\n";
+            display += "</table></br>\n";
+            document.getElementById('display').innerHTML = display;
+
+            {
+                var graphData = sampler.Evaluate(y_of_t);
+
+                var plot = new Plot();
+                plot.title = "Y at Time";
+                plot.yAxisTitle = "Y (m)";
+                plot.xAxisTitle = "Time (s)";
+                plot.FromGraphData(graphData);
+            }
+
+            // want to plot time vs. altitude with an object given an initial upward
+            // velocity, and acted on by gravity (G=9.8M/s^2)
+            // H = V t + 1/2 A t^2
+            {
+                var graphData = sampler.Evaluate(d1);
+
+                var plot = new Plot();
+                plot.title = "Velocity at Time";
+                plot.yAxisTitle = "Velocity (m/s)";
+                plot.xAxisTitle = "Time (s)";
+                plot.FromGraphData(graphData);
+            }
+
+        }
+        </script>
+    </head>
+    <body onload="initPage();">
+        <div id="display"></div>
+    </body>
+</html>

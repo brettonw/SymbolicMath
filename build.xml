@@ -1,0 +1,36 @@
+<project name="SymbolicMath" default="rel" basedir=".">
+    <description> Build file for Symbolic Math JavaScript project </description>
+    <property name="build-tools-dir" value="../BuildTools"/>
+  	<import file="${build-tools-dir}/common-build.xml"/>
+  	
+    <property name="source-dir" value="src"/>
+    <property name="build-dir" value="build"/>
+    <property name="site-dir" value="site"/>
+
+
+    <property name="concat-target" value="SymbolicMath-concat.js"/>
+    <property name="preprocess-target" value="SymbolicMath-preprocess.js"/>
+    <property name="dev-target" value="SymbolicMath-debug.js"/>
+    <property name="rel-target" value="SymbolicMath.js"/>
+
+    <target name="js-concatenate" depends="init">
+        <concat destfile="${build-dir}/${concat-target}">
+            <!-- file order is important, at least for the first two files -->
+            <fileset dir="${source-dir}" includes="macros.h" />
+            <fileset dir="${source-dir}" includes="Expr.js" />
+            <fileset dir="${source-dir}" includes="Constant.js" />
+            <fileset dir="${source-dir}" includes="Variable.js" />
+            <fileset dir="${source-dir}" includes="Add.js" />
+            <fileset dir="${source-dir}" includes="Multiply.js" />
+            <fileset dir="${source-dir}" includes="Power.js" />
+            <fileset dir="${source-dir}" includes="SquareRoot.js" />
+            <fileset dir="${source-dir}" includes="Divide.js" />
+            <fileset dir="${source-dir}" includes="Trig.js" />
+            <fileset dir="${source-dir}" includes="Logarithm.js" />
+            <fileset dir="${source-dir}" includes="Plot.js" />
+            <fileset dir="${source-dir}" includes="Sampler.js" />
+            <fileset dir="${source-dir}" includes="SM.js" />
+            <fileset dir="${source-dir}" includes="Debug.js" />
+        </concat>
+    </target>
+</project>

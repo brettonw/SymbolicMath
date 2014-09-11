@@ -1,0 +1,38 @@
+<!doctype html> 
+<html>
+<head>
+    <title>Symbolic Math - e</title>
+    <script type="text/javascript" src="SymbolicMath.js"></script>
+    <script type="text/javascript" src="d3.v2.min.js"></script> 
+</head>
+<body onload="initPage();">
+<div id="display">display</div>
+<script type="text/javascript">
+    function initPage()
+    {
+        var display = new String();
+        display = "<table cellspacing='5'>";
+        display += "<tr><th>Equation</th></tr>\n";
+
+        var equation = SM.Add (1, SM.Divide (1, "x")).Power ("x");
+        
+        display += "<tr><td>" + equation.toString () + "</td></tr>\n";
+
+        display += "</table></br>\n";
+
+        document.getElementById('display').innerHTML = display;
+
+        // now evaluate the function
+        var sampler = new Sampler ();
+        sampler.domain = ["x", 0.0, 20.0];
+        sampler.sampleCount = 80;
+        //sampler.errorTolerance = 1.0e-5;
+        var graphData = sampler.Evaluate (equation);
+
+        var plot = new Plot ();
+        plot.title = "e";
+        plot.FromGraphData (graphData);
+    }
+    
+</script> </body>
+</html>
