@@ -9,6 +9,26 @@ function debugOut(from, msg) {
     }
     console.log(output);
 }
+var Utility = Object.create(null);
+Utility.shallowCopy = function (from, to) {
+    for (var part in from) {
+        if (from.hasOwnProperty(part)) {
+            to[part] = from[part];
+        }
+    }
+}
+Utility.combine = function (a, b) {
+    var ab = Object.create(null);
+    Utility.shallowCopy(a, ab);
+    Utility.shallowCopy(b, ab);
+    return ab;
+}
+Utility.add = function (a, k, v) {
+    var ab = Object.create(null);
+    Utility.shallowCopy(a, ab);
+    ab[k] = v;
+    return ab;
+}
 var Expr = Object.create(null);
 Expr.MakeExpr = function(a) {
     var typeofa = typeof(a);
@@ -706,13 +726,12 @@ function Sampler ()
     this.Evaluate = function (expr)
     {
         var scope = this;
-        var dValues = {};
-        dValues[this.domain.name] = this.domain.from;
+        var dValues = Utility.add ({}, scope.domain.name, scope.domain.from);
         var d1 = expr.D (dValues);
         var evaluateExpr = function (x) {
-            scope.values[scope.domain.name] = x;
-            var y = expr.N (scope.values);
-            var dy = d1.N (scope.values);
+            var values = Utility.add (scope.values, scope.domain.name, x);
+            var y = expr.N (values);
+            var dy = d1.N (values);
             return { x : x, y : y, dy : dy };
         };
         var evaluatePair = function (A, B, rec) {
@@ -755,36 +774,41 @@ function Sampler ()
 function Integrator() {
     this.values = {};
     this.domain = { name: "x", from: 0.0, to: 1.0, h: 0.1 };
-    this.Evaluate = function (y0, dy0, derivativeExpr) {
+    this.Evaluate = function (y0, derivativeExpr) {
         var scope = this;
-        var evaluateEulerStep = function (value, h) {
+        var evaluateWithEulerStep = function (value, h) {
+            var values = Utility.add(scope.values, scope.domain.name, value.x);
+            var dy = derivativeExpr.N(values) * h;
+            var y = value.y + dy;
             var x = value.x + h;
-            var y = value.y + (value.dy * h);
-            var dy = value.dy + (derivativeExpr.N(scope.values) * h);
-            return { x: x, y: y, dy: dy };
+            return { x: x, y: y };
         }
-        var evaluateSteps = function (stepFunction) {
-            var last = { x: scope.domain.from, y: y0, dy: dy0 };
+        var evaluateWithMidpointMethod = function (value, h) {
+            scope.values[scope.domain.name] = value.x + 0.5 * h;
+            var dy = derivativeExpr.N(scope.values) * h;
+            var y = value.y + dy;
+            var x = value.x + h;
+            return { x: x, y: y };
+        }
+        var evaluateSteps = function (evaluateWith) {
+            var last = { x: scope.domain.from, y: y0 };
             var samples = [];
             samples.push(last);
-            while (last.x <= scope.domain.to) {
-                last = stepFunction (last, scope.domain.h);
+            while (last.x < scope.domain.to) {
+                last = evaluateWith (last, scope.domain.h);
                 samples.push(last);
             }
             return samples;
         }
-        var sampleData = evaluateSteps(evaluateEulerStep);
+        var sampleData = evaluateSteps(evaluateWithMidpointMethod);
         return sampleData;
     };
     this.EvaluateFromExpr = function (expr) {
-        var dValues = {};
-        dValues[this.domain.name] = this.domain.from;
+        var dValues = Utility.add({}, this.domain.name, this.domain.from);
         var d1 = expr.D(dValues);
-        var d2 = d1.D(dValues);
-        this.values[this.domain.name] = this.domain.from;
-        var y0 = expr.N(this.values);
-        var dy0 = d1.N(this.values);
-        return this.Evaluate(y0, dy0, d2);
+        var values = Utility.add(this.values, this.domain.name, this.domain.from);
+        var y0 = expr.N(values);
+        return this.Evaluate(y0, d1);
     };
 }
 var SM = Object.create(null);

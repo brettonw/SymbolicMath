@@ -18,6 +18,7 @@
             <!-- file order is important, at least for the first three files -->
             <fileset dir="${source-dir}" includes="macros.h" />
             <fileset dir="${source-dir}" includes="Debug.js" />
+            <fileset dir="${source-dir}" includes="Utility.js" />
             <fileset dir="${source-dir}" includes="Expr.js" />
             <fileset dir="${source-dir}" includes="Constant.js" />
             <fileset dir="${source-dir}" includes="Variable.js" />

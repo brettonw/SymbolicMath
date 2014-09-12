@@ -25,8 +25,7 @@
             var a = SM.Expr("a");
             var t = SM.Expr("t");
             var y_of_t = SM.Add(SM.Multiply(v, t), SM.Multiply(-0.5, a, SM.Power(t, 2.0)).Simplify());
-            var dValues = {};
-            dValues[sampler.domain.name] = sampler.domain.from;
+            var dValues = Utility.add({}, sampler.domain.name, sampler.domain.from);
             var d1 = y_of_t.D(dValues);
             display += "<tr><td>" + y_of_t.toString() + "</td></tr>\n";
             display += "<tr><td>" + d1.toString() + "</td></tr>\n";
@@ -61,7 +60,7 @@
             document.getElementById('display').innerHTML += "<br>";
 
             var integrator = new Integrator();
-            integrator.domain = { name: "t", from: 0.0, to: 2.0, h: 0.1 };
+            integrator.domain = { name: "t", from: 0.0, to: 2.0, h: 0.2 };
             integrator.values = sampler.values;
             {
                 var graphData = integrator.EvaluateFromExpr(y_of_t);

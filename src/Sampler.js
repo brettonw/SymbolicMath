@@ -16,17 +16,16 @@ function Sampler ()
         // compute the first derivative of the expression with respect to the
         // domain variable, we'll use this to evaluate error during the sampling
         // process
-        var dValues = {};
-        dValues[this.domain.name] = this.domain.from;
+        var dValues = Utility.add ({}, scope.domain.name, scope.domain.from);
         var d1 = expr.D (dValues);
         
         // a simple function to evaluate the expression and its derivative
         // at a particular point.
         // returns a sample with all three values
         var evaluateExpr = function (x) {
-            scope.values[scope.domain.name] = x;
-            var y = expr.N (scope.values);
-            var dy = d1.N (scope.values);
+            var values = Utility.add (scope.values, scope.domain.name, x);
+            var y = expr.N (values);
+            var dy = d1.N (values);
             return { x : x, y : y, dy : dy };
         };
         
