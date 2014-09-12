@@ -26,8 +26,8 @@ function Sampler ()
         var evaluateExpr = function (x) {
             scope.values[scope.domain.name] = x;
             var y = expr.N (scope.values);
-            var y1 = d1.N (scope.values);
-            return { x : x, y : y, y1 : y1 };
+            var dy = d1.N (scope.values);
+            return { x : x, y : y, dy : dy };
         };
         
         // given two samples, A and B, evaluate whether to subdivide the line
@@ -46,10 +46,10 @@ function Sampler ()
                 // (A) above
                 var sampleErrorSlope = function (A, B, C) {
                     // average the computed slope at the end points
-                    var dydxAverage = (A.y1 + B.y1) / 2.0;
+                    var dyAverage = (A.dy + B.dy) / 2.0;
 
                     // compare that to the computed slope
-                    var error = Math.abs((C.y1 / dydxAverage) - 1);
+                    var error = Math.abs((C.dy / dyAverage) - 1);
                     DEBUG_OUT (DEBUG_LEVEL.TRC, "Sampler.Evaluate.sampleErrorSlope", ((error > scope.errorToleranceSlope) ? "FAIL" : "pass") + ", error = " + error);
                     return error;
                 }

@@ -46,9 +46,9 @@
             document.getElementById('display').innerHTML += "<br>";
 
 
-            // want to plot time vs. altitude with an object given an initial upward
+            // want to plot time vs. velocity with an object given an initial upward
             // velocity, and acted on by gravity (G=9.8M/s^2)
-            // H = V t + 1/2 A t^2
+            // H = V + A t
             {
                 var graphData = sampler.Evaluate(d1);
 
@@ -58,7 +58,20 @@
                 plot.xAxisTitle = "Time (s)";
                 plot.FromGraphData(graphData);
             }
+            document.getElementById('display').innerHTML += "<br>";
 
+            var integrator = new Integrator();
+            integrator.domain = { name: "t", from: 0.0, to: 2.0, h: 0.1 };
+            integrator.values = sampler.values;
+            {
+                var graphData = integrator.EvaluateFromExpr(y_of_t);
+
+                var plot = new Plot();
+                plot.title = "Y at Time (by integration)";
+                plot.yAxisTitle = "Y (m)";
+                plot.xAxisTitle = "Time (s)";
+                plot.FromGraphData(graphData);
+            }
         }
         </script>
     </head>

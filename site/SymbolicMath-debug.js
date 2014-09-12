@@ -712,14 +712,14 @@ function Sampler ()
         var evaluateExpr = function (x) {
             scope.values[scope.domain.name] = x;
             var y = expr.N (scope.values);
-            var y1 = d1.N (scope.values);
-            return { x : x, y : y, y1 : y1 };
+            var dy = d1.N (scope.values);
+            return { x : x, y : y, dy : dy };
         };
         var evaluatePair = function (A, B, rec) {
             if (rec < scope.maxRecursion) {
                 var sampleErrorSlope = function (A, B, C) {
-                    var dydxAverage = (A.y1 + B.y1) / 2.0;
-                    var error = Math.abs((C.y1 / dydxAverage) - 1);
+                    var dyAverage = (A.dy + B.dy) / 2.0;
+                    var error = Math.abs((C.dy / dyAverage) - 1);
                     if (DEBUG_LEVEL.TRC >= globalDebugLevel) { debugOut ("Sampler.Evaluate.sampleErrorSlope", ((error > scope.errorToleranceSlope) ? "FAIL" : "pass") + ", error = " + error); };
                     return error;
                 }
@@ -754,46 +754,37 @@ function Sampler ()
 }
 function Integrator() {
     this.values = {};
-    this.domain = { name: "x", from: 0.0, to: 1.0 };
-    this.sampleCount = 8;
-    this.Evaluate = function (expr) {
+    this.domain = { name: "x", from: 0.0, to: 1.0, h: 0.1 };
+    this.Evaluate = function (y0, dy0, derivativeExpr) {
         var scope = this;
-        var dValues = {};
-        dValues[this.domain.name] = this.domain.from;
-        var d1 = expr.D(dValues);
-        var evaluateExpr = function (x) {
-            scope.values[scope.domain.name] = x;
-            var y = expr.N(scope.values);
-            var y1 = d1.N(scope.values);
-            return { x: x, y: y, y1: y1 };
-        };
-        var evaluateRange = function (a, b, rec) {
-            if (rec < scope.maxRecursion) {
-                var dydxSampled = (b.y - a.y) / (b.x - a.x);
-                var dydxComputed = (a.y1 + b.y1) / 2.0;
-                var error = Math.abs((dydxSampled / dydxComputed) - 1);
-                if (error > scope.errorTolerance) {
-                    var c = evaluateExpr((a.x + b.x) / 2.0);
-                    return evaluateRange(a, c, rec + 1).concat(evaluateRange(c, b, rec + 1));
-                }
-            }
-            return [b];
-        };
-        var last = evaluateExpr(this.domain.from);
-        var sampleData = [last];
-        var stepSize = (this.domain.to - this.domain.from) / this.sampleCount;
-        for (var i = 1; i <= this.sampleCount; ++i) {
-            var x = this.domain.from + (stepSize * i);
-            var current = evaluateExpr(x);
-            sampleData = sampleData.concat(evaluateRange(last, current, 0));
-            last = current;
+        var evaluateEulerStep = function (value, h) {
+            var x = value.x + h;
+            var y = value.y + (value.dy * h);
+            var dy = value.dy + (derivativeExpr.N(scope.values) * h);
+            return { x: x, y: y, dy: dy };
         }
+        var evaluateSteps = function (stepFunction) {
+            var last = { x: scope.domain.from, y: y0, dy: dy0 };
+            var samples = [];
+            samples.push(last);
+            while (last.x <= scope.domain.to) {
+                last = stepFunction (last, scope.domain.h);
+                samples.push(last);
+            }
+            return samples;
+        }
+        var sampleData = evaluateSteps(evaluateEulerStep);
         return sampleData;
     };
-    this.NSolve = function (expr) {
+    this.EvaluateFromExpr = function (expr) {
         var dValues = {};
         dValues[this.domain.name] = this.domain.from;
         var d1 = expr.D(dValues);
+        var d2 = d1.D(dValues);
+        this.values[this.domain.name] = this.domain.from;
+        var y0 = expr.N(this.values);
+        var dy0 = d1.N(this.values);
+        return this.Evaluate(y0, dy0, d2);
     };
 }
 var SM = Object.create(null);
