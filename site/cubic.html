@@ -11,9 +11,11 @@
             display = "<table cellspacing='5'>";
             display += "<tr><th>Equation</th></tr>\n";
 
-            var equation = SM.Multiply(0.25, SM.Power("x", 3.0)).Add(SM.Multiply(-1.3, SM.Power("x", 2.0))).Add(SM.Multiply(2, "x")).Add(3.5);
+            var equation = SM.Multiply(1.0, SM.Power("x", 3.0)).Add(SM.Multiply(-6.0, SM.Power("x", 2.0))).Add(SM.Multiply(4.0, "x")).Add(12.0).Simplify ();
+            var d1 = equation.D({ x: 1 });
 
             display += "<tr><td>" + equation.toString() + "</td></tr>\n";
+            display += "<tr><td>" + d1.toString() + "</td></tr>\n";
 
             display += "</table></br>\n";
 
@@ -21,11 +23,20 @@
 
             // now evaluate the function
             var sampler = new Sampler();
-            var graphData = sampler.Evaluate(equation);
-
-            var plot = new Plot();
-            plot.title = "Cubic (x)";
-            plot.FromGraphData(graphData);
+            sampler.domain.from = -2.0;
+            sampler.domain.to = 6.0;
+            {
+                var graphData = sampler.Evaluate(equation);
+                var plot = new Plot();
+                plot.title = "Cubic (x)";
+                plot.FromGraphData(graphData);
+            }
+            {
+                var graphData = sampler.Evaluate(d1);
+                var plot = new Plot();
+                plot.title = "1st Derivative (x)";
+                plot.FromGraphData(graphData);
+            }
         }
 
         </script> </head>
