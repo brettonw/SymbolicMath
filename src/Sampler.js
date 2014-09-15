@@ -1,14 +1,13 @@
 function Sampler () 
 {
-    this.values = {};
-    this.domain = { name: "x", from: 0.0, to: 1.0 };
-    this.sampleCount = 32;
+    //this.values = {};
+    //this.domain = { x: "x", from: 0.0, to: 1.0 };
     this.minRecursion = 2;          // bisection, so 2^2 = 4
     this.maxRecursion = 12;         // bisection, so 2^11 = 2048
     this.errorToleranceDistance = 1.0e-3;
     this.errorToleranceSlope = 1.0e-3;
     
-    this.Evaluate = function (expr)
+    this.Evaluate = function (expr, domain, values)
     {
         // scoping access to "this" inside of sub-functions
         var scope = this;
@@ -16,16 +15,15 @@ function Sampler ()
         // compute the first derivative of the expression with respect to the
         // domain variable, we'll use this to evaluate error during the sampling
         // process
-        var dValues = Utility.add ({}, scope.domain.name, scope.domain.from);
-        var d1 = expr.D (dValues);
+        var d1 = expr.D (Utility.make (domain.x, domain.from));
         
         // a simple function to evaluate the expression and its derivative
         // at a particular point.
         // returns a sample with all three values
         var evaluateExpr = function (x) {
-            var values = Utility.add (scope.values, scope.domain.name, x);
-            var y = expr.N (values);
-            var dy = d1.N (values);
+            var nValues = Utility.add (values, domain.x, x);
+            var y = expr.N (nValues);
+            var dy = d1.N (nValues);
             return { x : x, y : y, dy : dy };
         };
         
@@ -82,14 +80,14 @@ function Sampler ()
 
             // recursively split this range as long as the midpoint is far enough
         // off the linear interpolation
-        var sampleData = [evaluateExpr(this.domain.from)];
-        sampleData = sampleData.concat (evaluatePair(sampleData[0], evaluateExpr(this.domain.to), 0));
+        var sampleData = [evaluateExpr(domain.from)];
+        sampleData = sampleData.concat (evaluatePair(sampleData[0], evaluateExpr(domain.to), 0));
 
         // return the result
         return sampleData;
     };
     
-    this.NSolve = function (expr)
+    this.NSolve = function (expr, domain, values)
     {
         // looking for the point(s) where the function is 0, using modified
         // Euler's method
@@ -97,8 +95,6 @@ function Sampler ()
         // compute the first derivative of the expression with respect to the
         // domain variable, we'll use this to evaluate error during the sampling
         // process
-        var dValues = {};
-        dValues[this.domain.name] = this.domain.from;
-        var d1 = expr.D (dValues);
+        var d1 = expr.D (Utility.make (domain.x, domain.from));
     };
 }

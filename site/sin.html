@@ -21,8 +21,8 @@
 
             // now evaluate the function
             var sampler = new Sampler();
-            sampler.domain.to = 2.0 * Math.PI;
-            var graphData = sampler.Evaluate(equation);
+            var domain = { x: "x", from: 0.0, to: 2.0 * Math.PI };
+            var graphData = sampler.Evaluate(equation, domain, {});
 
             var plot = new Plot();
             plot.title = "Sin (x)";

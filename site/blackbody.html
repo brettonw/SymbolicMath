@@ -23,14 +23,14 @@
 
             // now evaluate the function
             var sampler = new Sampler();
-            sampler.values = {
+            var domain = { x: "&lambda;", from: 220.0 * 1.0e-9, to: 1880 * 1.0e-9 };
+            var values = {
                 T: 5777              // Color Temperature - degrees K
             };
-            sampler.domain = { name: "&lambda;", from: 220.0 * 1.0e-9, to: 1880 * 1.0e-9 };
-            var graphData = sampler.Evaluate(L);
+            var graphData = sampler.Evaluate(L, domain, values);
 
             var plot = new Plot();
-            plot.title = "Blackbody Radiation at T=" + sampler.values.T + "ºK";
+            plot.title = "Blackbody Radiation at T=" + values.T + "ºK";
             plot.xAxisTitle = "\u03BB = Wavelength (nm)";
             plot.yAxisTitle = "Spectral Radiance (W / m² / sr / nm)";
             plot.FromGraphData(graphData);

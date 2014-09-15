@@ -11,6 +11,9 @@
             display = "<table cellspacing='5'>";
             display += "<tr><th>Equation</th></tr>\n";
 
+            // create the sampler I'll use to build graphs
+            var sampler = new Sampler();
+
             // want to know time and velocity at distance travelled - note this is
             // entirely independent of mass
             // D = 1/2 A t^2
@@ -18,19 +21,19 @@
             // given D -> t = Sqrt (2 D / A), V = A (2 D / A) ^ 0.5
             var t_at_d = SM.Sqrt(SM.Divide(SM.Multiply("d", 2.0), "a"));
             var v_at_d = SM.Multiply("a", t_at_d);
-            var t = t_at_d.N({ d: 1.0, a: SM.namedConstants.g });
-            var v = v_at_d.N({ d: 1.0, a: SM.namedConstants.g });
+
+            // compute parameters for the following graphs
+            var values = { d: 1.0, a: SM.namedConstants.g };
+            var t = t_at_d.N(values);
+            var v = v_at_d.N(values);
             console.log("time at arrest: " + t);
             console.log("velocity at arrest: " + v);
             {
                 // now evaluate the function
-                var sampler = new Sampler();
-                sampler.domain = { name: "d", from: 0.0, to: 1.5 };
-                sampler.values["a"] = SM.namedConstants.g;
-                var graphData = sampler.Evaluate(v_at_d);
+                var graphData = sampler.Evaluate(v_at_d, { x: "d", from: 0.0, to: 1.5 }, { a: SM.namedConstants.g });
 
                 var plot = new Plot();
-                plot.title = "Velocity at Distance falling";
+                plot.title = "Velocity vs Distance fallen";
                 plot.xAxisTitle = "Distance (m)";
                 plot.yAxisTitle = "Velocity (m s^-1)";
                 plot.FromGraphData(graphData);
@@ -48,17 +51,14 @@
             // A = F / m
             // V = A t -> V = F t / m
             // F = m V / t
-            var F_at_t = SM.Multiply("m", "v").Divide("t");
             {
+                var F_at_t = SM.Multiply("m", "v").Divide("t");
+
                 // now evaluate the function
-                var sampler = new Sampler();
-                sampler.domain = { name: "t", from: 1.0e-2, to: 0.25 };
-                sampler.values["m"] = 1;
-                sampler.values["v"] = v;
-                var graphData = sampler.Evaluate(F_at_t);
+                var graphData = sampler.Evaluate(F_at_t, { x: "t", from: 1.0e-2, to: 0.25 }, { m: 1.0, v: v } );
 
                 var plot = new Plot();
-                plot.title = "Force at stop time";
+                plot.title = "Force at stop (fall 1m)";
                 plot.xAxisTitle = "Time (s)";
                 plot.yAxisTitle = "Force (N)";
                 plot.FromGraphData(graphData);
@@ -69,19 +69,15 @@
             // velocity change must be -v, over a time t, such that the distance travelled
             // is some amount d
             // d = v t + -1/2 f t^2 / m
-            var d_at_t = SM.Multiply(2, "m", SM.Subtract(SM.Multiply("v", "t"), "d")).Divide(SM.Power("t", 2));
-            var F_at_t_B = SM.Multiply(2, "m", SM.Subtract(SM.Multiply("v", "t"), "d")).Divide(SM.Power("t", 2));
             {
+                var d_at_t = SM.Multiply(2, "m", SM.Subtract(SM.Multiply("v", "t"), "d")).Divide(SM.Power("t", 2));
+                var F_at_t_B = SM.Multiply(2, "m", SM.Subtract(SM.Multiply("v", "t"), "d")).Divide(SM.Power("t", 2));
+
                 // now evaluate the function
-                var sampler = new Sampler();
-                sampler.domain = { name: "t", from: 1.0e-2, to: 1.0 };
-                sampler.values["m"] = 1;
-                sampler.values["v"] = v;
-                sampler.values["d"] = 0.05;
-                var graphData = sampler.Evaluate(F_at_t_B);
+                var graphData = sampler.Evaluate(F_at_t_B, { x: "t", from: 1.0e-2, to: 1.0 }, { m: 1.0, v: v, d: 0.05 });
 
                 var plot = new Plot();
-                plot.title = "Force at stop time";
+                plot.title = "Force at stop time (fall 1m, stretch 5%)";
                 plot.xAxisTitle = "Time (s)";
                 plot.yAxisTitle = "Force (N)";
                 plot.FromGraphData(graphData);

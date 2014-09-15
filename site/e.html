@@ -24,11 +24,9 @@
         document.getElementById('display').innerHTML = display;
 
         // now evaluate the function
-        var sampler = new Sampler ();
-        sampler.domain.to = 20.0;
-        sampler.sampleCount = 80;
-        //sampler.errorTolerance = 1.0e-5;
-        var graphData = sampler.Evaluate (equation);
+        var sampler = new Sampler();
+        var domain = { x: "x", from: 0, to: 20 }
+        var graphData = sampler.Evaluate(equation, domain, {});
 
         var plot = new Plot ();
         plot.title = "e";

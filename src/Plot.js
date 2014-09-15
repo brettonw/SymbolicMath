@@ -218,5 +218,6 @@ function Plot ()
                 .attr("font-weight", "bold")
                 .attr("font-size", "12px");
         }
+        document.getElementById(this.tag).innerHTML += "<br>";
     }
 }

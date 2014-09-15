@@ -14,9 +14,8 @@
 
             // create the sampler I'll use to build graphs
             var sampler = new Sampler();
-            sampler.domain = { name: "t", from: 0.0, to: 2.0 };
-            sampler.values["a"] = SM.namedConstants.g;
-            sampler.values["v"] = SM.namedConstants.g;
+            var domain = { x: "t", from: 0.0, to: 2.0 };
+            var values = { a: -SM.namedConstants.g, v: SM.namedConstants.g };
 
             // want to plot time vs. altitude with an object given an initial upward
             // velocity, and acted on by gravity (G=9.8M/s^2)
@@ -24,16 +23,15 @@
             var v = SM.Expr("v");
             var a = SM.Expr("a");
             var t = SM.Expr("t");
-            var y_of_t = SM.Add(SM.Multiply(v, t), SM.Multiply(-0.5, a, SM.Power(t, 2.0)).Simplify());
-            var dValues = Utility.add({}, sampler.domain.name, sampler.domain.from);
-            var d1 = y_of_t.D(dValues);
+            var y_of_t = SM.Add(SM.Multiply(v, t), SM.Multiply(0.5, a, SM.Power(t, 2.0)).Simplify());
+            var d1 = y_of_t.D(Utility.make(domain.x, domain.from));
             display += "<tr><td>" + y_of_t.toString() + "</td></tr>\n";
             display += "<tr><td>" + d1.toString() + "</td></tr>\n";
             display += "</table></br>\n";
             document.getElementById('display').innerHTML = display;
 
             {
-                var graphData = sampler.Evaluate(y_of_t);
+                var graphData = sampler.Evaluate(y_of_t, domain, values);
 
                 var plot = new Plot();
                 plot.title = "Y at Time";
@@ -42,14 +40,13 @@
                 plot.FromGraphData(graphData);
             }
 
-            document.getElementById('display').innerHTML += "<br>";
 
 
             // want to plot time vs. velocity with an object given an initial upward
             // velocity, and acted on by gravity (G=9.8M/s^2)
             // H = V + A t
             {
-                var graphData = sampler.Evaluate(d1);
+                var graphData = sampler.Evaluate(d1, domain, values);
 
                 var plot = new Plot();
                 plot.title = "Velocity at Time";
@@ -57,13 +54,10 @@
                 plot.xAxisTitle = "Time (s)";
                 plot.FromGraphData(graphData);
             }
-            document.getElementById('display').innerHTML += "<br>";
 
-            var integrator = new Integrator();
-            integrator.domain = { name: "t", from: 0.0, to: 2.0, h: 0.2 };
-            integrator.values = sampler.values;
             {
-                var graphData = integrator.EvaluateFromExpr(y_of_t);
+                var integrator = new Integrator();
+                var graphData = integrator.EvaluateFromExpr(y_of_t, domain, values);
 
                 var plot = new Plot();
                 plot.title = "Y at Time (by integration)";

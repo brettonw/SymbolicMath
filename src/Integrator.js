@@ -1,46 +1,45 @@
 function Integrator() {
-    this.values = {};
-    this.domain = { name: "x", from: 0.0, to: 1.0, h: 0.1 };
+    this.Evaluate = function (y0, derivativeExpr, domain, values) {
+        // condition the input
+        if (NOT domain.hasOwnhasOwnProperty ("dx")) {
+            domain = Utility.make(domain, dx, (domain.to - domain.from) / 20.0);
+        }
 
-    this.Evaluate = function (y0, derivativeExpr) {
-        // scoping access to "this" inside of sub-functions
-        var scope = this;
-
-        var evaluateWithEulerStep = function (value, h) {
+        var evaluateWithEulerStep = function (state, dx) {
             /*
             dx = dt * dxdt(x, t);
             t += dt;
             x += dx;
             */
-            var values = Utility.add(scope.values, scope.domain.name, value.x);
-            var dy = derivativeExpr.N(values) * h;
-            var y = value.y + dy;
-            var x = value.x + h;
+            var nValues = Utility.add(values, domain.x, state.x);
+            var dy = derivativeExpr.N(nValues) * dx;
+            var y = state.y + dy;
+            var x = state.x + dx;
             return { x: x, y: y };
         }
 
-        var evaluateWithMidpointMethod = function (value, h) {
+        var evaluateWithMidpointMethod = function (state, dx) {
             /*
             dx1 = dt * dxdt(x, t);
             dx2 = dt * dxdt(x + 0.5 * dx1, t + 0.5 * dt);
             t += dt;
             x += dx2;
             */
-            //var dy1 = derivativeExpr.N(scope.values) * h;
-            scope.values[scope.domain.name] = value.x + 0.5 * h;
-            var dy = derivativeExpr.N(scope.values) * h;
-            var y = value.y + dy;
-            var x = value.x + h;
+            var nValues = Utility.add(values, domain.x, state.x + (0.5 * dx));
+            var dy = derivativeExpr.N(nValues) * dx;
+            var y = state.y + dy;
+            var x = state.x + dx;
             return { x: x, y: y };
         }
 
         // build the result array with the first sample point in the range
         var evaluateSteps = function (evaluateWith) {
-            var last = { x: scope.domain.from, y: y0 };
+            var last = { x: domain.from, y: y0 };
+            var end = domain.to - (domain.dx * 1.0e-3);
             var samples = [];
             samples.push(last);
-            while (last.x < scope.domain.to) {
-                last = evaluateWith (last, scope.domain.h);
+            while (last.x < end) {
+                last = evaluateWith (last, domain.dx);
                 samples.push(last);
             }
             return samples;
@@ -51,16 +50,14 @@ function Integrator() {
         return sampleData;
     };
 
-    this.EvaluateFromExpr = function (expr) {
+    this.EvaluateFromExpr = function (expr, domain, values) {
         // get the derivatives with respect to the domain
-        var dValues = Utility.add({}, this.domain.name, this.domain.from);
-        var d1 = expr.D(dValues);
+        var d1 = expr.D(Utility.make(domain.x, domain.from));
 
         // compute the initial values
-        var values = Utility.add(this.values, this.domain.name, this.domain.from);
-        var y0 = expr.N(values);
+        var y0 = expr.N(Utility.add(values, domain.x, domain.from));
 
         // call to the actual worker
-        return this.Evaluate(y0, d1);
+        return this.Evaluate(y0, d1, domain, values);
     };
 }

@@ -29,6 +29,11 @@ Utility.add = function (a, k, v) {
     ab[k] = v;
     return ab;
 }
+Utility.make = function (k, v) {
+    var ab = Object.create(null);
+    ab[k] = v;
+    return ab;
+}
 var Expr = Object.create(null);
 Expr.MakeExpr = function(a) {
     var typeofa = typeof(a);
@@ -712,26 +717,23 @@ function Plot ()
                 .attr("font-weight", "bold")
                 .attr("font-size", "12px");
         }
+        document.getElementById(this.tag).innerHTML += "<br>";
     }
 }
 function Sampler ()
 {
-    this.values = {};
-    this.domain = { name: "x", from: 0.0, to: 1.0 };
-    this.sampleCount = 32;
     this.minRecursion = 2;
     this.maxRecursion = 12;
     this.errorToleranceDistance = 1.0e-3;
     this.errorToleranceSlope = 1.0e-3;
-    this.Evaluate = function (expr)
+    this.Evaluate = function (expr, domain, values)
     {
         var scope = this;
-        var dValues = Utility.add ({}, scope.domain.name, scope.domain.from);
-        var d1 = expr.D (dValues);
+        var d1 = expr.D (Utility.make (domain.x, domain.from));
         var evaluateExpr = function (x) {
-            var values = Utility.add (scope.values, scope.domain.name, x);
-            var y = expr.N (values);
-            var dy = d1.N (values);
+            var nValues = Utility.add (values, domain.x, x);
+            var y = expr.N (nValues);
+            var dy = d1.N (nValues);
             return { x : x, y : y, dy : dy };
         };
         var evaluatePair = function (A, B, rec) {
@@ -760,42 +762,38 @@ function Sampler ()
             }
             return [B];
         }
-        var sampleData = [evaluateExpr(this.domain.from)];
-        sampleData = sampleData.concat (evaluatePair(sampleData[0], evaluateExpr(this.domain.to), 0));
+        var sampleData = [evaluateExpr(domain.from)];
+        sampleData = sampleData.concat (evaluatePair(sampleData[0], evaluateExpr(domain.to), 0));
         return sampleData;
     };
-    this.NSolve = function (expr)
+    this.NSolve = function (expr, domain, values)
     {
-        var dValues = {};
-        dValues[this.domain.name] = this.domain.from;
-        var d1 = expr.D (dValues);
+        var d1 = expr.D (Utility.make (domain.x, domain.from));
     };
 }
 function Integrator() {
-    this.values = {};
-    this.domain = { name: "x", from: 0.0, to: 1.0, h: 0.1 };
-    this.Evaluate = function (y0, derivativeExpr) {
-        var scope = this;
-        var evaluateWithEulerStep = function (value, h) {
-            var values = Utility.add(scope.values, scope.domain.name, value.x);
-            var dy = derivativeExpr.N(values) * h;
-            var y = value.y + dy;
-            var x = value.x + h;
+    this.Evaluate = function (y0, derivativeExpr, domain, values) {
+        var evaluateWithEulerStep = function (state, dx) {
+            var nValues = Utility.add(values, domain.x, state.x);
+            var dy = derivativeExpr.N(nValues) * dx;
+            var y = state.y + dy;
+            var x = state.x + dx;
             return { x: x, y: y };
         }
-        var evaluateWithMidpointMethod = function (value, h) {
-            scope.values[scope.domain.name] = value.x + 0.5 * h;
-            var dy = derivativeExpr.N(scope.values) * h;
-            var y = value.y + dy;
-            var x = value.x + h;
+        var evaluateWithMidpointMethod = function (state, dx) {
+            var nValues = Utility.add(values, domain.x, state.x + (0.5 * dx));
+            var dy = derivativeExpr.N(nValues) * dx;
+            var y = state.y + dy;
+            var x = state.x + dx;
             return { x: x, y: y };
         }
         var evaluateSteps = function (evaluateWith) {
-            var last = { x: scope.domain.from, y: y0 };
+            var last = { x: domain.from, y: y0 };
+            var end = domain.to - (domain.dx * 1.0e-3);
             var samples = [];
             samples.push(last);
-            while (last.x < scope.domain.to) {
-                last = evaluateWith (last, scope.domain.h);
+            while (last.x < end) {
+                last = evaluateWith (last, domain.dx);
                 samples.push(last);
             }
             return samples;
@@ -803,12 +801,10 @@ function Integrator() {
         var sampleData = evaluateSteps(evaluateWithMidpointMethod);
         return sampleData;
     };
-    this.EvaluateFromExpr = function (expr) {
-        var dValues = Utility.add({}, this.domain.name, this.domain.from);
-        var d1 = expr.D(dValues);
-        var values = Utility.add(this.values, this.domain.name, this.domain.from);
-        var y0 = expr.N(values);
-        return this.Evaluate(y0, d1);
+    this.EvaluateFromExpr = function (expr, domain, values) {
+        var d1 = expr.D(Utility.make(domain.x, domain.from));
+        var y0 = expr.N(Utility.add(values, domain.x, domain.from));
+        return this.Evaluate(y0, d1, domain, values);
     };
 }
 var SM = Object.create(null);

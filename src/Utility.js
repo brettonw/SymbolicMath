@@ -21,3 +21,9 @@ Utility.add = function (a, k, v) {
     ab[k] = v;
     return ab;
 }
+
+Utility.make = function (k, v) {
+    var ab = Object.create(null);
+    ab[k] = v;
+    return ab;
+}

@@ -23,16 +23,15 @@
 
             // now evaluate the function
             var sampler = new Sampler();
-            sampler.domain.from = -2.0;
-            sampler.domain.to = 6.0;
+            var domain = { x: "x", from: -2.0, to: 6.0 };
             {
-                var graphData = sampler.Evaluate(equation);
+                var graphData = sampler.Evaluate(equation, domain, {});
                 var plot = new Plot();
                 plot.title = "Cubic (x)";
                 plot.FromGraphData(graphData);
             }
             {
-                var graphData = sampler.Evaluate(d1);
+                var graphData = sampler.Evaluate(d1, domain, {});
                 var plot = new Plot();
                 plot.title = "1st Derivative (x)";
                 plot.FromGraphData(graphData);
