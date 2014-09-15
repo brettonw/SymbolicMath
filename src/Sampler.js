@@ -1,7 +1,5 @@
 function Sampler () 
 {
-    //this.values = {};
-    //this.domain = { x: "x", from: 0.0, to: 1.0 };
     this.minRecursion = 2;          // bisection, so 2^2 = 4
     this.maxRecursion = 12;         // bisection, so 2^11 = 2048
     this.errorToleranceDistance = 1.0e-3;

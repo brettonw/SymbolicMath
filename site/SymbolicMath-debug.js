@@ -772,15 +772,17 @@ function Sampler ()
     };
 }
 function Integrator() {
+    this.defaultStepCount = 25;
     this.Evaluate = function (y0, derivativeExpr, domain, values) {
-        var evaluateWithEulerStep = function (state, dx) {
+        var dx = domain.hasOwnProperty ("dx") ? domain.dx : ((domain.to - domain.from) / this.defaultStepCount);
+        var evaluateWithEulerStep = function (state) {
             var nValues = Utility.add(values, domain.x, state.x);
             var dy = derivativeExpr.N(nValues) * dx;
             var y = state.y + dy;
             var x = state.x + dx;
             return { x: x, y: y };
         }
-        var evaluateWithMidpointMethod = function (state, dx) {
+        var evaluateWithMidpointMethod = function (state) {
             var nValues = Utility.add(values, domain.x, state.x + (0.5 * dx));
             var dy = derivativeExpr.N(nValues) * dx;
             var y = state.y + dy;
@@ -789,11 +791,11 @@ function Integrator() {
         }
         var evaluateSteps = function (evaluateWith) {
             var last = { x: domain.from, y: y0 };
-            var end = domain.to - (domain.dx * 1.0e-3);
+            var end = domain.to - (dx * 0.5);
             var samples = [];
             samples.push(last);
             while (last.x < end) {
-                last = evaluateWith (last, domain.dx);
+                last = evaluateWith (last);
                 samples.push(last);
             }
             return samples;

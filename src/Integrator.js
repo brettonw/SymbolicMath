@@ -1,11 +1,10 @@
 function Integrator() {
+    this.defaultStepCount = 25;
     this.Evaluate = function (y0, derivativeExpr, domain, values) {
         // condition the input
-        if (NOT domain.hasOwnhasOwnProperty ("dx")) {
-            domain = Utility.make(domain, dx, (domain.to - domain.from) / 20.0);
-        }
+        var dx = domain.hasOwnProperty ("dx") ? domain.dx : ((domain.to - domain.from) / this.defaultStepCount);
 
-        var evaluateWithEulerStep = function (state, dx) {
+        var evaluateWithEulerStep = function (state) {
             /*
             dx = dt * dxdt(x, t);
             t += dt;
@@ -18,7 +17,7 @@ function Integrator() {
             return { x: x, y: y };
         }
 
-        var evaluateWithMidpointMethod = function (state, dx) {
+        var evaluateWithMidpointMethod = function (state) {
             /*
             dx1 = dt * dxdt(x, t);
             dx2 = dt * dxdt(x + 0.5 * dx1, t + 0.5 * dt);
@@ -35,11 +34,11 @@ function Integrator() {
         // build the result array with the first sample point in the range
         var evaluateSteps = function (evaluateWith) {
             var last = { x: domain.from, y: y0 };
-            var end = domain.to - (domain.dx * 1.0e-3);
+            var end = domain.to - (dx * 0.5);
             var samples = [];
             samples.push(last);
             while (last.x < end) {
-                last = evaluateWith (last, domain.dx);
+                last = evaluateWith (last);
                 samples.push(last);
             }
             return samples;
