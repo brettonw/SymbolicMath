@@ -544,7 +544,7 @@ function Plot ()
 {
     this.tag = "display";
     this.width = 480;
-    this.height = 360;
+    this.height = 320;
     this.margin = [48, 8, 18, 23];
     this.title = null;
     this.xAxisTitle = null;
@@ -596,28 +596,42 @@ function Plot ()
         if (this.title) { this.margin[1] += 18; }
         if (this.xAxisTitle) { this.margin[3] += 15; }
         if (this.yAxisTitle) { this.margin[0] += 15; }
-        var xDomain = AdjustDomain ([d3.min(graphData, function (d) { return d.x}), d3.max(graphData, function (d) { return d.x})]);
-        var yDomain = AdjustDomain ([d3.min(graphData, function (d) { return d.y}), d3.max(graphData, function (d) { return d.y})], true);
-        var x = d3.scale.linear().domain([xDomain[0], xDomain[1]]).range([0 + this.margin[0], this.width - this.margin[2]]);
-        var y = d3.scale.linear().domain([yDomain[0], yDomain[1]]).range([this.height - this.margin[3], 0 + this.margin[1]]);
-        var g = d3.select("#" + this.tag)
-            .append("svg")
-            .attr("class", "SymbolicMathPlot")
-            .attr("width", this.width)
-            .attr("height", this.height)
-            .append("g");
-        g.append("rect")
-            .attr("fill", "rgba(0, 0, 255, 0.05)")
-            .attr("stroke", "rgba(0, 0, 255, 0.1)")
-            .attr("width", "100%")
-            .attr("height", "100%");
-        g.append("path")
-            .attr ("d", d3.svg.line()
-                .x(function(d, i) { return x(d.x); })
-                .y(function(d) { return y(d.y); }) (graphData))
-            .attr("stroke", "rgb(128, 0, 0)")
-            .attr("stroke-width", 2.0)
-            .attr("fill", "none");
+        var arrayFilter = function (array, filterFunc, selector) {
+            var result = array[0][selector];
+            for (var i = 1, count = array.length; i < count; ++i) {
+                var test = array[i][selector];
+                result = filterFunc (result, test);
+            }
+            return result;
+        }
+        var arrayMin = function (array, selector) { return arrayFilter (array, Math.min, selector); }
+        var arrayMax = function (array, selector) { return arrayFilter (array, Math.max, selector); }
+        var xMin = arrayMin (graphData, function (d) { return d.x; })
+        var xDomain = AdjustDomain ([arrayMin (graphData, 'x'), arrayMax (graphData, 'x')]);
+        var yDomain = AdjustDomain ([arrayMin (graphData,'y'), arrayMax (graphData, 'y')], true);
+        var xDomainSize = xDomain[1] - xDomain[0];
+        var yDomainSize = yDomain[1] - yDomain[0];
+        var mapPointX = function (x) {
+            return 1.5 * (x - xDomain[0]) / xDomainSize;
+        }
+        var mapPointY = function (y) {
+            return 1.0 * (y - yDomain[0]) / yDomainSize;
+        }
+        var mapPointXY = function (x, y) {
+            return {
+                x: mapPointX (x),
+                y: mapPointY (y)
+            };
+        }
+        var mapPoint = function (xy) {
+            return mapPointXY (xy.x, xy.y);
+        }
+        var svg = '<div class="svg-div">' +
+                    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" ' +
+                    'viewBox="-0.05, -0.05, 1.6, 1.1" preserveAspectRatio="xMidYMid meet" ' +
+                    '>' +
+                    '<g transform="translate(0, 1), scale(1, -1)">' +
+            '';
         var makeTicks = function (domain) {
             var ticks = [];
             var incr = (domain[1] - domain[0]) / domain[2];
@@ -627,97 +641,27 @@ function Plot ()
             return ticks;
         };
         var xTicks = makeTicks (xDomain);
+        var bottom = mapPointY(yDomain[0]);
+        var top = mapPointY(yDomain[1]);
+        for (var i = 0, count = xTicks.length; i < count; ++i) {
+            var tick = mapPointX (xTicks[i]);
+            svg += '<line x1="' + tick + '" y1="' + bottom + '" x2="' + tick + '" y2="' + top + '" stroke="#c0c0c0" stroke-width="0.005" />'
+        }
         var yTicks = makeTicks (yDomain);
-        g.selectAll(".xTicks")
-            .data(xTicks)
-            .enter().append("line").attr("class", "xTicks")
-            .attr("x1", function(d) { return x(d); })
-            .attr("y1", y(yDomain[0]) + 5)
-            .attr("x2", function(d) { return x(d); })
-            .attr("y2", y(yDomain[1]))
-            .attr("stroke", "rgba(0, 0, 0, 0.20)")
-            .attr("stroke-width", 1)
-            .attr("stroke-dasharray", "1, 1");
-        g.selectAll(".yTicks")
-            .data(yTicks)
-            .enter().append("line").attr("class", "yTicks")
-            .attr("y1", function(d) { return y(d); })
-            .attr("x1", x(xDomain[0])-5)
-            .attr("y2", function(d) { return y(d); })
-            .attr("x2", x(xDomain[1]))
-            .attr("stroke", "rgba(0, 0, 0, 0.20)")
-            .attr("stroke-width", 1)
-            .attr("stroke-dasharray", "1, 1");
-        var labelText = function (number, order, precision) {
-            var divisor = Math.pow (10, order);
-            var value = number / divisor;
-            if (value != 0) {
-                return value.toFixed(precision).toString () + ((order != 0) ? ("e" + order) : "");
-            }
-            return 0;
-        };
-        var xAxisOrderOfMagnitude = ComputeOrderOfMagnitude (xDomain[1]);
-        g.selectAll(".xLabel")
-            .data(xTicks)
-            .enter().append("text").attr("class", "xLabel")
-            .text(function(d) { return labelText (d, xAxisOrderOfMagnitude, xDomain[3]); })
-            .attr("x", function(d) { return x(d); })
-            .attr("y", y(yDomain[0]))
-            .attr("dy", 15)
-            .attr("fill", "rgba(0, 0, 0, 0.50)")
-            .attr("text-anchor", "middle")
-            .attr("font-family", "Arial")
-            .attr("font-size", "9px");
-        var yAxisOrderOfMagnitude = ComputeOrderOfMagnitude (yDomain[1]);
-        g.selectAll(".yLabel")
-            .data(yTicks)
-            .enter().append("text").attr("class", "yLabel")
-            .text(function(d) { return labelText (d, yAxisOrderOfMagnitude, yDomain[3]); })
-            .attr("x", x (xDomain[0]))
-            .attr("y", function(d) { return y(d) })
-            .attr("dx", -8)
-            .attr("dy", 3)
-            .attr("fill", "rgba(0, 0, 0, 0.50)")
-            .attr("text-anchor", "end")
-            .attr("font-family", "Arial")
-            .attr("font-size", "9px");
-        if (this.title) {
-            g.append("text")
-                .text(this.title)
-                .attr("x", this.width / 2.0)
-                .attr("y", 18)
-                .attr("fill", "rgba(0, 0, 0, 0.66)")
-                .attr("text-anchor", "middle")
-                .attr("font-family", "Arial")
-                .attr("font-size", "18px");
+        var left = mapPointX(xDomain[0]);
+        var right = mapPointX(xDomain[1]);
+        for (var i = 0, count = yTicks.length; i < count; ++i) {
+            var tick = mapPointY (yTicks[i]);
+            svg += '<line x1="' + left + '" y1="' + tick + '" x2="' + right + '" y2="' + tick + '" stroke="#c0c0c0" stroke-width="0.005" />'
         }
-        if (this.xAxisTitle) {
-            g.append("text")
-                .text(this.xAxisTitle)
-                .attr("x", x((xDomain[0] + xDomain[1]) / 2.0))
-                .attr("y", y(yDomain[0]))
-                .attr("dy", 30)
-                .attr("fill", "rgba(0, 0, 0, 0.66)")
-                .attr("text-anchor", "middle")
-                .attr("font-family", "Arial")
-                .attr("font-weight", "bold")
-                .attr("font-size", "12px");
+        svg += '<polyline fill="none" stroke="blue" stroke-width="0.0075" points="';
+        for (var i = 0, count = graphData.length; i < count; ++i) {
+            var datum = mapPoint (graphData[i]);
+            svg += datum.x + ',' + datum.y + ' ';
         }
-        if (this.yAxisTitle) {
-            var ty = y((yDomain[0] + yDomain[1]) / 2);
-            g.append ("text")
-                .text(this.yAxisTitle)
-                .attr("x", 0)
-                .attr("y", ty)
-                .attr("transform", "translate(10,0) rotate(180,0," + ty + ")")
-                .attr("writing-mode", "tb")
-                .attr("fill", "rgba(0, 0, 0, 0.66)")
-                .attr("text-anchor", "middle")
-                .attr("font-family", "Arial")
-                .attr("font-weight", "bold")
-                .attr("font-size", "12px");
-        }
-        document.getElementById(this.tag).innerHTML += "<br>";
+        svg += '" />';
+        svg += "</svg></div>"
+        document.getElementById(this.tag).innerHTML += svg + "<br>";
     }
 }
 function Sampler ()

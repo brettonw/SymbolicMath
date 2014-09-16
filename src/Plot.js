@@ -2,7 +2,7 @@ function Plot ()
 {
     this.tag = "display";
     this.width = 480;
-    this.height = 360;
+    this.height = 320;
     this.margin = [48, 8, 18, 23]; // Left, Top, Right, Bottom
     this.title = null;
     this.xAxisTitle = null;
@@ -72,11 +72,92 @@ function Plot ()
         if (this.yAxisTitle) { this.margin[0] += 15; }
     
         // compute the domain of the data and map it to the display area
-        var xDomain = AdjustDomain ([d3.min(graphData, function (d) { return d.x}), d3.max(graphData, function (d) { return d.x})]);
-        var yDomain = AdjustDomain ([d3.min(graphData, function (d) { return d.y}), d3.max(graphData, function (d) { return d.y})], true);
-        var x = d3.scale.linear().domain([xDomain[0], xDomain[1]]).range([0 + this.margin[0], this.width - this.margin[2]]);
-        var y = d3.scale.linear().domain([yDomain[0], yDomain[1]]).range([this.height - this.margin[3], 0 + this.margin[1]]);
+        var arrayFilter = function (array, filterFunc, selector) {
+            var result = array[0][selector];
+            for (var i = 1, count = array.length; i < count; ++i) {
+                var test = array[i][selector];
+                result = filterFunc (result, test);
+            }
+            return result;
+        }
+
+        var arrayMin = function (array, selector) { return arrayFilter (array, Math.min, selector); }
+        var arrayMax = function (array, selector) { return arrayFilter (array, Math.max, selector); }
+        var xMin = arrayMin (graphData, function (d) { return d.x; })
+        var xDomain = AdjustDomain ([arrayMin (graphData, 'x'), arrayMax (graphData, 'x')]);
+        var yDomain = AdjustDomain ([arrayMin (graphData,'y'), arrayMax (graphData, 'y')], true);
+        var xDomainSize = xDomain[1] - xDomain[0];
+        var yDomainSize = yDomain[1] - yDomain[0];
+
+        var mapPointX = function (x) {
+            return 1.5 * (x - xDomain[0]) / xDomainSize;
+        }
+
+        var mapPointY = function (y) {
+            return 1.0 * (y - yDomain[0]) / yDomainSize;
+        }
+
+        var mapPointXY = function (x, y) {
+            return {
+                x: mapPointX (x),
+                y: mapPointY (y)
+            };
+        }
+
+        var mapPoint = function (xy) {
+            return mapPointXY (xy.x, xy.y);
+        }
+
+        // create the raw SVG picture for display
+        var svg = '<div class="svg-div">' +
+                    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" ' +
+                    'viewBox="-0.05, -0.05, 1.6, 1.1" preserveAspectRatio="xMidYMid meet" ' +
+                    '>' +
+                    '<g transform="translate(0, 1), scale(1, -1)">' + 
+            '';
+
+        // function to return an array of values to be used as tick marks
+        var makeTicks = function (domain) {
+            var ticks = [];
+            var incr = (domain[1] - domain[0]) / domain[2];
+            for (var i = 0; i <= domain[2]; ++i) {
+                ticks.push (domain[0] + (i * incr));
+            }
+            return ticks;
+        };
+          
+        // draw the x ticks
+        var xTicks = makeTicks (xDomain);
+        var bottom = mapPointY(yDomain[0]);
+        var top = mapPointY(yDomain[1]);
+        for (var i = 0, count = xTicks.length; i < count; ++i) {
+            var tick = mapPointX (xTicks[i]);
+            svg += '<line x1="' + tick + '" y1="' + bottom + '" x2="' + tick + '" y2="' + top + '" stroke="#c0c0c0" stroke-width="0.005" />'
+        }
+
+        // draw the y ticks
+        var yTicks = makeTicks (yDomain);
+        var left = mapPointX(xDomain[0]);
+        var right = mapPointX(xDomain[1]);
+        for (var i = 0, count = yTicks.length; i < count; ++i) {
+            var tick = mapPointY (yTicks[i]);
+            svg += '<line x1="' + left + '" y1="' + tick + '" x2="' + right + '" y2="' + tick + '" stroke="#c0c0c0" stroke-width="0.005" />'
+        }
+
+
+        // make the plot
+        svg += '<polyline fill="none" stroke="blue" stroke-width="0.0075" points="';
+        for (var i = 0, count = graphData.length; i < count; ++i) {
+            var datum = mapPoint (graphData[i]);
+            svg += datum.x + ',' + datum.y + ' ';
+        }
+        svg += '" />';
+
+        // close the plot
+        svg += "</svg></div>"
         
+        document.getElementById(this.tag).innerHTML += svg + "<br>";
+        /*
         // create the svg and g tags inside the target DOM element
         var g = d3.select("#" + this.tag)
             .append("svg")
@@ -219,5 +300,6 @@ function Plot ()
                 .attr("font-size", "12px");
         }
         document.getElementById(this.tag).innerHTML += "<br>";
+        */
     }
 }

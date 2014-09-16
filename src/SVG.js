@@ -1,6 +1,6 @@
-var Utility = Object.create(null);
+var SVG = Object.create(null);
 
-Utility.shallowCopy = function (from, to) {
+SVG.shallowCopy = function (from, to) {
     for (var part in from) {
         if (from.hasOwnProperty(part)) {
             to[part] = from[part];
@@ -8,21 +8,21 @@ Utility.shallowCopy = function (from, to) {
     }
 }
 
-Utility.combine = function (a, b) {
+SVG.combine = function (a, b) {
     var ab = Object.create(null);
     Utility.shallowCopy(a, ab);
     Utility.shallowCopy(b, ab);
     return ab;
 }
 
-Utility.add = function (a, k, v) {
+SVG.add = function (a, k, v) {
     var ab = Object.create(null);
     Utility.shallowCopy(a, ab);
     ab[k] = v;
     return ab;
 }
 
-Utility.make = function (k, v) {
+SVG.make = function (k, v) {
     var ab = Object.create(null);
     ab[k] = v;
     return ab;

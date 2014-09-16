@@ -6,15 +6,13 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "site", "site", "{C41D8DA8-765A-46F6-B787-317327000213}"
 	ProjectSection(SolutionItems) = preProject
 		site\blackbody.html = site\blackbody.html
-		site\d3.v2.js = site\d3.v2.js
-		site\d3.v2.min.js = site\d3.v2.min.js
-		site\d3.v3.js = site\d3.v3.js
-		site\d3.v3.min.js = site\d3.v3.min.js
+		site\cubic.html = site\cubic.html
 		site\e.html = site\e.html
 		site\gravity.html = site\gravity.html
 		site\index.html = site\index.html
 		site\integration.html = site\integration.html
 		site\sin.html = site\sin.html
+		site\style.css = site\style.css
 		site\SymbolicMath-debug.js = site\SymbolicMath-debug.js
 		site\SymbolicMath.js = site\SymbolicMath.js
 		site\test-MultiplyDerivative.html = site\test-MultiplyDerivative.html
@@ -40,7 +38,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{4285032A-EF1
 		src\Sampler.js = src\Sampler.js
 		src\SM.js = src\SM.js
 		src\SquareRoot.js = src\SquareRoot.js
+		src\SVG.js = src\SVG.js
 		src\Trig.js = src\Trig.js
+		src\Utility.js = src\Utility.js
 		src\Variable.js = src\Variable.js
 	EndProjectSection
 EndProject

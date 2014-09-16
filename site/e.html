@@ -1,37 +1,36 @@
 <!doctype html> 
 <html>
-<head>
-    <title>Symbolic Math - e</title>
-    <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=MML_HTMLorMML"></script>
-    <script src="http://d3js.org/d3.v3.min.js"></script>
-    <script src="SymbolicMath.js"></script>
-</head>
-<body onload="initPage();">
-<div id="display">display</div>
-<script type="text/javascript">
-    function initPage()
-    {
-        var display = new String();
-        display = "<table cellspacing='5'>";
-        display += "<tr><th>Equation</th></tr>\n";
+    <head>
+        <title>Symbolic Math - e</title>
+        <link rel="stylesheet" href="style.css" />
+        <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=MML_HTMLorMML"></script>
+        <script src="SymbolicMath-debug.js"></script>
+        <script type="text/javascript">
+        function initPage() {
+            var display = new String();
+            display = "<table cellspacing='5'>";
+            display += "<tr><th>Equation</th></tr>\n";
 
-        var equation = SM.Add (1, SM.Divide (1, "x")).Power ("x");
-        
-        display += "<tr><td>" + equation.toString () + "</td></tr>\n";
+            var equation = SM.Add(1, SM.Divide(1, "x")).Power("x");
 
-        display += "</table></br>\n";
+            display += "<tr><td>" + equation.toString() + "</td></tr>\n";
 
-        document.getElementById('display').innerHTML = display;
+            display += "</table></br>\n";
 
-        // now evaluate the function
-        var sampler = new Sampler();
-        var domain = { x: "x", from: 0, to: 20 }
-        var graphData = sampler.Evaluate(equation, domain, {});
+            document.getElementById('display').innerHTML = display;
 
-        var plot = new Plot ();
-        plot.title = "e";
-        plot.FromGraphData (graphData);
-    }
-    
-</script> </body>
+            // now evaluate the function
+            var sampler = new Sampler();
+            var domain = { x: "x", from: 0, to: 20 }
+            var graphData = sampler.Evaluate(equation, domain, {});
+
+            var plot = new Plot();
+            plot.title = "e";
+            plot.FromGraphData(graphData);
+        }
+        </script> 
+    </head>
+    <body onload="initPage();">
+        <div id="display">display</div>
+    </body>
 </html>
