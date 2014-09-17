@@ -30,21 +30,32 @@ function Plot ()
             return order;
         };
     
-        // a function to make the scales for display "nice" - d3 already
-        // has an ability to do this, but it's not quite deterministic enough
-        var AdjustDomain = function (domain, adjustDelta) {
-            // compute the delta and a divisor that gives us less than 10 clean ticks
-            var delta = domain[1] - domain[0];
+        // compute the range of the input array and use that to compute the 
+        // delta and a divisor that gives us less than 10 clean ticks
+        var buildDomain = function (array, selector, expandDelta, displaySize) {
+            // functions to compute the range of the input array
+            var arrayFilter = function (array, filterFunc, selector) {
+                var result = array[0][selector];
+                for (var i = 1, count = array.length; i < count; ++i) {
+                    var test = array[i][selector];
+                    result = filterFunc (result, test);
+                }
+                return result;
+            }
+            var min = arrayFilter (array, Math.min, selector);
+            var max = arrayFilter (array, Math.max, selector);
+            var delta = max - min;
             if (delta > 0) {
-                if (adjustDelta) {
+                if (expandDelta) {
                     // expand the range by 1%...
-                    if (domain[1] != 0) {
-                        domain[1] = domain[1] + (delta * 0.01);
+                    var deltaDelta = delta * 0.01;
+                    if (max != 0) {
+                        max += deltaDelta;
                     }
-                    if ((domain[0] != 0) AND (domain[0] != 1)) {
-                        domain[0] = domain[0] - (delta * 0.01);
+                    if ((min != 0) AND (min != 1)) {
+                        min -= deltaDelta;
                     }
-                    delta = domain[1] - domain[0];
+                    delta = max - min;
                 }
                 
                 var tickOrderOfMagnitude = ComputeOrderOfMagnitude (delta);
@@ -56,91 +67,78 @@ function Plot ()
                 while ((delta / tickDivisor) > 9) {
                     tickDivisor = tickDivisorBase * tryScale[++tickDivisorIndex];
                 }
+                var tickCount = Math.round ((max - min) / tickDivisor);
                 
-                // now round the top and bottom to that divisor
-                domain[0] = Math.floor (domain[0] / tickDivisor) * tickDivisor;
-                domain[1] = Math.ceil (domain[1] / tickDivisor) * tickDivisor;
-                domain[2] = Math.round ((domain[1] - domain[0]) / tickDivisor);
-                domain[3] = tryPrecision[tickDivisorIndex];
+                // now round the top and bottom to that divisor, and build the
+                // domain object
+                var domain = function () {
+                    var domain = Object.create (null);
+
+                    // the basics
+                    domain.min = Math.floor (min / tickDivisor) * tickDivisor;
+                    domain.max = Math.ceil (max / tickDivisor) * tickDivisor;
+                    domain.delta = domain.max - domain.min;
+
+                    // the numeric display precision
+                    domain.precision = tryPrecision[tickDivisorIndex];
+
+                    // the mapping from compute space to display space
+                    domain.displaySize = displaySize;
+                    domain.map = function (value) {
+                        return this.displaySize * (value - this.min) / this.delta;
+                    };
+
+                    // the ticks
+                    domain.ticks = [];
+                    var incr = (domain.max - domain.min) / tickCount;
+                    for (var i = 0; i <= tickCount; ++i) {
+                        domain.ticks.push (domain.min + (i * incr));
+                    }
+                    return domain;
+                } ();
+                return domain;
             }
-            return domain;
+            return null;
         };
         
         // account for titles in the display
         if (this.title) { this.margin[1] += 18; }
         if (this.xAxisTitle) { this.margin[3] += 15; }
         if (this.yAxisTitle) { this.margin[0] += 15; }
-    
-        // compute the domain of the data and map it to the display area
-        var arrayFilter = function (array, filterFunc, selector) {
-            var result = array[0][selector];
-            for (var i = 1, count = array.length; i < count; ++i) {
-                var test = array[i][selector];
-                result = filterFunc (result, test);
+
+        // compute the domain of the data
+        var domain = {
+            x: buildDomain (graphData, 'x', false, 1.5),
+            y: buildDomain (graphData, 'y', true, 1.0),
+            map: function (xy) {
+                return {
+                    x: this.x.map (xy.x),
+                    y: this.y.map (xy.y)
+                };
             }
-            return result;
-        }
-
-        var arrayMin = function (array, selector) { return arrayFilter (array, Math.min, selector); }
-        var arrayMax = function (array, selector) { return arrayFilter (array, Math.max, selector); }
-        var xMin = arrayMin (graphData, function (d) { return d.x; })
-        var xDomain = AdjustDomain ([arrayMin (graphData, 'x'), arrayMax (graphData, 'x')]);
-        var yDomain = AdjustDomain ([arrayMin (graphData,'y'), arrayMax (graphData, 'y')], true);
-        var xDomainSize = xDomain[1] - xDomain[0];
-        var yDomainSize = yDomain[1] - yDomain[0];
-
-        var mapPointX = function (x) {
-            return 1.5 * (x - xDomain[0]) / xDomainSize;
-        }
-
-        var mapPointY = function (y) {
-            return 1.0 * (y - yDomain[0]) / yDomainSize;
-        }
-
-        var mapPointXY = function (x, y) {
-            return {
-                x: mapPointX (x),
-                y: mapPointY (y)
-            };
-        }
-
-        var mapPoint = function (xy) {
-            return mapPointXY (xy.x, xy.y);
-        }
+        };
 
         // create the raw SVG picture for display
         var svg = '<div class="svg-div">' +
                     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" ' +
-                    'viewBox="-0.05, -0.05, 1.6, 1.1" preserveAspectRatio="xMidYMid meet" ' +
+                    'viewBox="-0.05, -0.05, ' + (domain.x.displaySize + 0.1) + ', ' + (domain.y.displaySize + 0.1) + '" preserveAspectRatio="xMidYMid meet" ' +
                     '>' +
                     '<g transform="translate(0, 1), scale(1, -1)">' + 
             '';
 
-        // function to return an array of values to be used as tick marks
-        var makeTicks = function (domain) {
-            var ticks = [];
-            var incr = (domain[1] - domain[0]) / domain[2];
-            for (var i = 0; i <= domain[2]; ++i) {
-                ticks.push (domain[0] + (i * incr));
-            }
-            return ticks;
-        };
-          
         // draw the x ticks
-        var xTicks = makeTicks (xDomain);
-        var bottom = mapPointY(yDomain[0]);
-        var top = mapPointY(yDomain[1]);
-        for (var i = 0, count = xTicks.length; i < count; ++i) {
-            var tick = mapPointX (xTicks[i]);
+        var bottom = domain.y.map (domain.y.min);
+        var top = domain.y.map (domain.y.max);
+        for (var i = 0, count = domain.x.ticks.length; i < count; ++i) {
+            var tick = domain.x.map (domain.x.ticks[i]);
             svg += '<line x1="' + tick + '" y1="' + bottom + '" x2="' + tick + '" y2="' + top + '" stroke="#c0c0c0" stroke-width="0.005" />'
         }
 
         // draw the y ticks
-        var yTicks = makeTicks (yDomain);
-        var left = mapPointX(xDomain[0]);
-        var right = mapPointX(xDomain[1]);
-        for (var i = 0, count = yTicks.length; i < count; ++i) {
-            var tick = mapPointY (yTicks[i]);
+        var left = domain.x.map (domain.x.min);
+        var right = domain.x.map (domain.x.max);
+        for (var i = 0, count = domain.y.ticks.length; i < count; ++i) {
+            var tick = domain.y.map (domain.y.ticks[i]);
             svg += '<line x1="' + left + '" y1="' + tick + '" x2="' + right + '" y2="' + tick + '" stroke="#c0c0c0" stroke-width="0.005" />'
         }
 
@@ -148,7 +146,7 @@ function Plot ()
         // make the plot
         svg += '<polyline fill="none" stroke="blue" stroke-width="0.0075" points="';
         for (var i = 0, count = graphData.length; i < count; ++i) {
-            var datum = mapPoint (graphData[i]);
+            var datum = domain.map (graphData[i]);
             svg += datum.x + ',' + datum.y + ' ';
         }
         svg += '" />';
