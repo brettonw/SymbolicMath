@@ -548,23 +548,22 @@ function Plot ()
     this.yAxisTitle = null;
     this.FromGraphData = function (graphData)
     {
-        if (DEBUG_LEVEL.DBG >= globalDebugLevel) { debugOut ("FromGraphData", "graphData.length = " + graphData.length); };
-        var computeOrderOfMagnitude = function (number) {
-            number = Math.max (Math.abs (number), 1.0e-6);
-            var order = 0;
-            while (number > 10.0) {
-                ++order;
-                number /= 10.0;
-            }
-            while (number < 1) {
-                --order;
-                number *= 10.0;
-            }
-            return order;
-        };
         var buildDomain = function (array, selector, expandDelta, displaySize) {
+            var computeOrderOfMagnitude = function (number) {
+                number = Math.max (Math.abs (number), 1.0e-6);
+                var order = 0;
+                while (number > 10.0) {
+                    ++order;
+                    number /= 10.0;
+                }
+                while (number < 1) {
+                    --order;
+                    number *= 10.0;
+                }
+                return order;
+            };
             var arrayFilter = function (array, filterFunc, selector) {
-                var result = array[0][selector];
+                var result = (typeof(selector) === 'function') ? selector(array[0]) : array[0][selector];
                 for (var i = 1, count = array.length; i < count; ++i) {
                     var test = array[i][selector];
                     result = filterFunc (result, test);

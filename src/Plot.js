@@ -7,32 +7,33 @@ function Plot ()
     
     this.FromGraphData = function (graphData) 
     {
-        DEBUG_OUT(DEBUG_LEVEL.DBG, "FromGraphData", "graphData.length = " + graphData.length);
+        //DEBUG_OUT(DEBUG_LEVEL.DBG, "FromGraphData", "graphData.length = " + graphData.length);
 
-        // a function to compute the order of magintude of a number, to use
-        // for scaling
-        var computeOrderOfMagnitude = function (number) {
-            number = Math.max (Math.abs (number), 1.0e-6);
-            
-            // a big number, then a small number
-            var order = 0;
-            while (number > 10.0) {
-                ++order;
-                number /= 10.0;
-            }
-            while (number < 1) {
-                --order;
-                number *= 10.0;
-            }
-            return order;
-        };
-    
+
         // compute the range of the input array and use that to compute the 
         // delta and a divisor that gives us less than 10 clean ticks
         var buildDomain = function (array, selector, expandDelta, displaySize) {
+            // a function to compute the order of magintude of a number, to use
+            // for scaling
+            var computeOrderOfMagnitude = function (number) {
+                number = Math.max (Math.abs (number), 1.0e-6);
+            
+                // a big number, then a small number
+                var order = 0;
+                while (number > 10.0) {
+                    ++order;
+                    number /= 10.0;
+                }
+                while (number < 1) {
+                    --order;
+                    number *= 10.0;
+                }
+                return order;
+            };
+    
             // functions to compute the range of the input array
             var arrayFilter = function (array, filterFunc, selector) {
-                var result = array[0][selector];
+                var result = (typeof(selector) === 'function') ? selector(array[0]) : array[0][selector];
                 for (var i = 1, count = array.length; i < count; ++i) {
                     var test = array[i][selector];
                     result = filterFunc (result, test);
