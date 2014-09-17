@@ -67,7 +67,6 @@ function Plot ()
                 while ((delta / tickDivisor) > 9) {
                     tickDivisor = tickDivisorBase * tryScale[++tickDivisorIndex];
                 }
-                var tickCount = Math.round ((max - min) / tickDivisor);
                 
                 // now round the top and bottom to that divisor, and build the
                 // domain object
@@ -90,6 +89,7 @@ function Plot ()
                     };
 
                     // the ticks
+                    var tickCount = Math.round ((domain.max - domain.min) / tickDivisor);
                     domain.ticks = [];
                     var incr = (domain.max - domain.min) / tickCount;
                     for (var i = 0; i <= tickCount; ++i) {

@@ -597,7 +597,6 @@ function Plot ()
                 while ((delta / tickDivisor) > 9) {
                     tickDivisor = tickDivisorBase * tryScale[++tickDivisorIndex];
                 }
-                var tickCount = Math.round ((max - min) / tickDivisor);
                 var domain = function () {
                     var domain = Object.create (null);
                     domain.min = Math.floor (min / tickDivisor) * tickDivisor;
@@ -609,6 +608,7 @@ function Plot ()
                     domain.map = function (value) {
                         return this.displaySize * (value - this.min) / this.delta;
                     };
+                    var tickCount = Math.round ((domain.max - domain.min) / tickDivisor);
                     domain.ticks = [];
                     var incr = (domain.max - domain.min) / tickCount;
                     for (var i = 0; i <= tickCount; ++i) {
