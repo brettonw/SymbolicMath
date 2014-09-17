@@ -26,13 +26,16 @@
             var values = {
                 T: 5777              // Color Temperature - degrees K
             };
-            var graphData = sampler.Evaluate(L, domain, values);
+            var graphData1 = sampler.Evaluate(L, domain, { T: 3500 });
+            var graphData2 = sampler.Evaluate(L, domain, { T: 4500 });
+            var graphData3 = sampler.Evaluate(L, domain, { T: 5500 });
+            var graphData4 = sampler.Evaluate(L, domain, { T: 6500 });
 
             var plot = new Plot();
-            plot.title = "Blackbody Radiation at T=" + values.T + "ºK";
+            plot.title = "Blackbody Radiation at T(ºK)";
             plot.xAxisTitle = "\u03BB = Wavelength (nm)";
             plot.yAxisTitle = "Spectral Radiance (W / m² / sr / nm)";
-            plot.FromGraphData(graphData);
+            plot.fromGraphDataArray([graphData1, graphData2, graphData3, graphData4]);
         }
         </script>
     </head>

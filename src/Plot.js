@@ -5,14 +5,14 @@ function Plot ()
     this.xAxisTitle = null;
     this.yAxisTitle = null;
     
-    this.FromGraphData = function (graphData) 
+    this.fromGraphDataArray = function (graphDataArray) 
     {
-        //DEBUG_OUT(DEBUG_LEVEL.DBG, "FromGraphData", "graphData.length = " + graphData.length);
+        //DEBUG_OUT(DEBUG_LEVEL.DBG, "fromGraphData", "graphData.length = " + graphData.length);
 
 
         // compute the range of the input array and use that to compute the 
         // delta and a divisor that gives us less than 10 clean ticks
-        var buildDomain = function (array, selector, expandDelta, displaySize) {
+        var buildDomain = function (arrayOfArrays, selector, expandDelta, displaySize) {
             // a function to compute the order of magintude of a number, to use
             // for scaling
             var computeOrderOfMagnitude = function (number) {
@@ -33,15 +33,24 @@ function Plot ()
     
             // functions to compute the range of the input array
             var arrayFilter = function (array, filterFunc, selector) {
-                var result = (typeof(selector) === 'function') ? selector(array[0]) : array[0][selector];
-                for (var i = 1, count = array.length; i < count; ++i) {
-                    var test = array[i][selector];
-                    result = filterFunc (result, test);
+                var result;
+                if (typeof(selector) === 'function') {
+                    result = selector(array[0]);
+                    for (var i = 1, count = array.length; i < count; ++i) {
+                        var test = selector (array[i]);
+                        result = filterFunc (result, test);
+                    }
+                } else {
+                    result = array[0][selector];
+                    for (var i = 1, count = array.length; i < count; ++i) {
+                        var test = array[i][selector];
+                        result = filterFunc (result, test);
+                    }
                 }
                 return result;
             }
-            var min = arrayFilter (array, Math.min, selector);
-            var max = arrayFilter (array, Math.max, selector);
+            var min = arrayFilter (arrayOfArrays, Math.min, function(array) { return arrayFilter (array, Math.min, selector); });
+            var max = arrayFilter (arrayOfArrays, Math.max, function(array) { return arrayFilter (array, Math.max, selector); });
             var delta = max - min;
             if (delta > 0) {
                 if (expandDelta) {
@@ -102,8 +111,8 @@ function Plot ()
         
         // compute the domain of the data
         var domain = {
-            x: buildDomain (graphData, 'x', false, 1.5),
-            y: buildDomain (graphData, 'y', true, 1.0),
+            x: buildDomain (graphDataArray, 'x', false, 1.5),
+            y: buildDomain (graphDataArray, 'y', true, 1.0),
             map: function (xy) {
                 return {
                     x: this.x.map (xy.x),
@@ -167,17 +176,25 @@ function Plot ()
             svg += '<text  x="' + (top / 2.0) + '" y="' + -(buffer + 0.025) + '" font-size="0.05" font-family="Arial" dominant-baseline="middle" text-anchor="middle" fill="#404040" transform="scale(1,-1), rotate(-90)">' + this.yAxisTitle + '</text>';
         }
 
-        // make the plot
-        svg += '<polyline fill="none" stroke="blue" stroke-width="0.0075" points="';
-        for (var i = 0, count = graphData.length; i < count; ++i) {
-            var datum = domain.map (graphData[i]);
-            svg += datum.x + ',' + datum.y + ' ';
+        // make the plots
+        var colors = ["blue", "red", "green", "orange", "purple"];
+        for (var i = 0, count = graphDataArray.length; i < count; ++i) {
+            svg += '<polyline fill="none" stroke="' + colors[i] + '" stroke-width="0.0075" points="';
+            var graphData = graphDataArray[i];
+            for (var j = 0, jcount = graphData.length; j < jcount; ++j) {
+                var datum = domain.map (graphData[j]);
+                svg += datum.x + ',' + datum.y + ' ';
+            }
+            svg += '" />';
         }
-        svg += '" />';
 
         // close the plot
         svg += "</svg></div>"
         
         document.getElementById(this.tag).innerHTML += svg + "<br>";
+    };
+
+    this.fromGraphData = function (graphData) {
+        this.fromGraphDataArray ([graphData]);
     }
 }

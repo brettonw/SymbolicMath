@@ -45,7 +45,8 @@ function Integrator() {
         }
 
         // return the result
-        var sampleData = evaluateSteps(evaluateWithMidpointMethod);
+        var sampleData = evaluateSteps(evaluateWithEulerStep);
+        //var sampleData = evaluateSteps(evaluateWithMidpointMethod);
         return sampleData;
     };
 

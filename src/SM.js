@@ -75,7 +75,7 @@ SM.Log = function(a) {
 };
 
 SM.Plot = function(graphData) {
-    new Plot ().FromGraphData (graphData);
+    new Plot ().fromGraphData (graphData);
 };
 
 SM.namedConstants = {

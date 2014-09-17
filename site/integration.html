@@ -31,13 +31,15 @@
             document.getElementById('display').innerHTML = display;
 
             {
-                var graphData = sampler.Evaluate(y_of_t, domain, values);
+                var graphDataA = sampler.Evaluate(y_of_t, domain, values);
+                var integrator = new Integrator();
+                var graphDataB = integrator.EvaluateFromExpr(y_of_t, domain, values);
 
                 var plot = new Plot();
                 plot.title = "Y at Time";
                 plot.yAxisTitle = "Y (m)";
                 plot.xAxisTitle = "Time (s)";
-                plot.FromGraphData(graphData);
+                plot.fromGraphDataArray([graphDataA, graphDataB]);
             }
 
             // want to plot time vs. velocity with an object given an initial upward
@@ -50,18 +52,7 @@
                 plot.title = "Velocity at Time";
                 plot.yAxisTitle = "Velocity (m/s)";
                 plot.xAxisTitle = "Time (s)";
-                plot.FromGraphData(graphData);
-            }
-
-            {
-                var integrator = new Integrator();
-                var graphData = integrator.EvaluateFromExpr(y_of_t, domain, values);
-
-                var plot = new Plot();
-                plot.title = "Y at Time (by integration)";
-                plot.yAxisTitle = "Y (m)";
-                plot.xAxisTitle = "Time (s)";
-                plot.FromGraphData(graphData);
+                plot.fromGraphData(graphData);
             }
         }
         </script>
