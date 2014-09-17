@@ -552,7 +552,7 @@ function Plot ()
     this.FromGraphData = function (graphData)
     {
         if (DEBUG_LEVEL.DBG >= globalDebugLevel) { debugOut ("FromGraphData", "graphData.length = " + graphData.length); };
-        var ComputeOrderOfMagnitude = function (number) {
+        var computeOrderOfMagnitude = function (number) {
             number = Math.max (Math.abs (number), 1.0e-6);
             var order = 0;
             while (number > 10.0) {
@@ -588,7 +588,7 @@ function Plot ()
                     }
                     delta = max - min;
                 }
-                var tickOrderOfMagnitude = ComputeOrderOfMagnitude (delta);
+                var tickOrderOfMagnitude = computeOrderOfMagnitude (delta);
                 var tryScale = [1.0, 2.0, 2.5, 5.0, 10.0, 20.0, 25.0];
                 var tryPrecision = [1, 1, 2, 1, 1, 1, 2];
                 var tickDivisorBase = Math.pow (10, tickOrderOfMagnitude - 1);
@@ -603,6 +603,7 @@ function Plot ()
                     domain.min = Math.floor (min / tickDivisor) * tickDivisor;
                     domain.max = Math.ceil (max / tickDivisor) * tickDivisor;
                     domain.delta = domain.max - domain.min;
+                    domain.orderOfMagnitude = computeOrderOfMagnitude (domain.max);
                     domain.precision = tryPrecision[tickDivisorIndex];
                     domain.displaySize = displaySize;
                     domain.map = function (value) {
@@ -634,15 +635,25 @@ function Plot ()
         };
         var svg = '<div class="svg-div">' +
                     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" ' +
-                    'viewBox="-0.05, -0.05, ' + (domain.x.displaySize + 0.1) + ', ' + (domain.y.displaySize + 0.1) + '" preserveAspectRatio="xMidYMid meet" ' +
+                    'viewBox="-0.05, -0.05, ' + (domain.x.displaySize + 0.1) + ', ' + (domain.y.displaySize + 0.1) + '" ' +
+                    'preserveAspectRatio="xMidYMid meet"' +
                     '>' +
-                    '<g transform="translate(0, 1), scale(1, -1)">' +
-            '';
+                    '<g transform="translate(0, 1), scale(1, -1)">';
+        var labelText = function (number, order, precision) {
+            var divisor = Math.pow (10, order);
+            var value = number / divisor;
+            if (value != 0) {
+                return value.toFixed(precision).toString () + ((order != 0) ? ("e" + order) : "");
+            }
+            return 0;
+        };
         var bottom = domain.y.map (domain.y.min);
         var top = domain.y.map (domain.y.max);
         for (var i = 0, count = domain.x.ticks.length; i < count; ++i) {
-            var tick = domain.x.map (domain.x.ticks[i]);
+            var ti = domain.x.ticks[i];
+            var tick = domain.x.map (ti);
             svg += '<line x1="' + tick + '" y1="' + bottom + '" x2="' + tick + '" y2="' + top + '" stroke="#c0c0c0" stroke-width="0.005" />'
+            svg += '<text  x="' + tick + '" y="' + (bottom + 0.04) + '" font-size="0.025" font-family="Arial" text-anchor="middle" fill="#808080" transform="scale(1,-1)">' + labelText (ti, domain.x.orderOfMagnitude, domain.x.precision) + '</text>';
         }
         var left = domain.x.map (domain.x.min);
         var right = domain.x.map (domain.x.max);

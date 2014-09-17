@@ -14,7 +14,7 @@ function Plot ()
 
         // a function to compute the order of magintude of a number, to use
         // for scaling
-        var ComputeOrderOfMagnitude = function (number) {
+        var computeOrderOfMagnitude = function (number) {
             number = Math.max (Math.abs (number), 1.0e-6);
             
             // a big number, then a small number
@@ -58,7 +58,7 @@ function Plot ()
                     delta = max - min;
                 }
                 
-                var tickOrderOfMagnitude = ComputeOrderOfMagnitude (delta);
+                var tickOrderOfMagnitude = computeOrderOfMagnitude (delta);
                 var tryScale = [1.0, 2.0, 2.5, 5.0, 10.0, 20.0, 25.0];
                 var tryPrecision = [1, 1, 2, 1, 1, 1, 2];
                 var tickDivisorBase = Math.pow (10, tickOrderOfMagnitude - 1);
@@ -78,6 +78,7 @@ function Plot ()
                     domain.min = Math.floor (min / tickDivisor) * tickDivisor;
                     domain.max = Math.ceil (max / tickDivisor) * tickDivisor;
                     domain.delta = domain.max - domain.min;
+                    domain.orderOfMagnitude = computeOrderOfMagnitude (domain.max);
 
                     // the numeric display precision
                     domain.precision = tryPrecision[tickDivisorIndex];
@@ -121,17 +122,30 @@ function Plot ()
         // create the raw SVG picture for display
         var svg = '<div class="svg-div">' +
                     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" ' +
-                    'viewBox="-0.05, -0.05, ' + (domain.x.displaySize + 0.1) + ', ' + (domain.y.displaySize + 0.1) + '" preserveAspectRatio="xMidYMid meet" ' +
+                    'viewBox="-0.05, -0.05, ' + (domain.x.displaySize + 0.1) + ', ' + (domain.y.displaySize + 0.1) + '" ' +
+                    'preserveAspectRatio="xMidYMid meet"' + 
                     '>' +
-                    '<g transform="translate(0, 1), scale(1, -1)">' + 
-            '';
+                    '<g transform="translate(0, 1), scale(1, -1)">'; 
 
-        // draw the x ticks
+        // format graph labels according to their order of magnitude and 
+        // desired precision
+        var labelText = function (number, order, precision) {
+            var     divisor = Math.pow (10, order);
+            var     value = number / divisor;
+            if (value != 0) {
+                return value.toFixed(precision).toString () + ((order != 0) ? ("e" + order) : "");
+            }
+            return 0;
+        };
+        
+        // draw the x ticks plus the labels
         var bottom = domain.y.map (domain.y.min);
         var top = domain.y.map (domain.y.max);
         for (var i = 0, count = domain.x.ticks.length; i < count; ++i) {
-            var tick = domain.x.map (domain.x.ticks[i]);
+            var ti = domain.x.ticks[i];
+            var tick = domain.x.map (ti);
             svg += '<line x1="' + tick + '" y1="' + bottom + '" x2="' + tick + '" y2="' + top + '" stroke="#c0c0c0" stroke-width="0.005" />'
+            svg += '<text  x="' + tick + '" y="' + (bottom + 0.04) + '" font-size="0.025" font-family="Arial" text-anchor="middle" fill="#808080" transform="scale(1,-1)">' + labelText (ti, domain.x.orderOfMagnitude, domain.x.precision) + '</text>';
         }
 
         // draw the y ticks
@@ -141,7 +155,6 @@ function Plot ()
             var tick = domain.y.map (domain.y.ticks[i]);
             svg += '<line x1="' + left + '" y1="' + tick + '" x2="' + right + '" y2="' + tick + '" stroke="#c0c0c0" stroke-width="0.005" />'
         }
-
 
         // make the plot
         svg += '<polyline fill="none" stroke="blue" stroke-width="0.0075" points="';
@@ -163,59 +176,6 @@ function Plot ()
             .attr("width", this.width)
             .attr("height", this.height)
             .append("g");
-            
-        // add a background rectangle
-        g.append("rect")
-            .attr("fill", "rgba(0, 0, 255, 0.05)")
-            .attr("stroke", "rgba(0, 0, 255, 0.1)")
-            .attr("width", "100%")
-            .attr("height", "100%");
-         
-        // add a plot line for the data
-        g.append("path")
-            .attr ("d", d3.svg.line()
-                .x(function(d, i) { return x(d.x); })
-                .y(function(d) { return y(d.y); }) (graphData))
-            .attr("stroke", "rgb(128, 0, 0)")
-            .attr("stroke-width", 2.0)
-            .attr("fill", "none");
-            
-        // function to return an array of values to be used as tick marks
-        var makeTicks = function (domain) {
-            var ticks = [];
-            var incr = (domain[1] - domain[0]) / domain[2];
-            for (var i = 0; i <= domain[2]; ++i) {
-                ticks.push (domain[0] + (i * incr));
-            }
-            return ticks;
-        };
-          
-        // create the x and y ticks arrays
-        var xTicks = makeTicks (xDomain);
-        var yTicks = makeTicks (yDomain);
-            
-        // render the x and y grids behind the plot
-        g.selectAll(".xTicks")
-            .data(xTicks)
-            .enter().append("line").attr("class", "xTicks")
-            .attr("x1", function(d) { return x(d); })
-            .attr("y1", y(yDomain[0]) + 5)
-            .attr("x2", function(d) { return x(d); })
-            .attr("y2", y(yDomain[1]))
-            .attr("stroke", "rgba(0, 0, 0, 0.20)")
-            .attr("stroke-width", 1)
-            .attr("stroke-dasharray", "1, 1");
-
-        g.selectAll(".yTicks")
-            .data(yTicks)
-            .enter().append("line").attr("class", "yTicks")
-            .attr("y1", function(d) { return y(d); })
-            .attr("x1", x(xDomain[0])-5)
-            .attr("y2", function(d) { return y(d); })
-            .attr("x2", x(xDomain[1]))
-            .attr("stroke", "rgba(0, 0, 0, 0.20)")
-            .attr("stroke-width", 1)
-            .attr("stroke-dasharray", "1, 1");
             
         // format graph labels according to their order of magnitude and 
         // desired precision
