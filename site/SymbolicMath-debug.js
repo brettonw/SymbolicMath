@@ -543,9 +543,6 @@ Log.Render = function(enclose) {
 function Plot ()
 {
     this.tag = "display";
-    this.width = 480;
-    this.height = 320;
-    this.margin = [48, 8, 18, 23];
     this.title = null;
     this.xAxisTitle = null;
     this.yAxisTitle = null;
@@ -620,9 +617,6 @@ function Plot ()
             }
             return null;
         };
-        if (this.title) { this.margin[1] += 18; }
-        if (this.xAxisTitle) { this.margin[3] += 15; }
-        if (this.yAxisTitle) { this.margin[0] += 15; }
         var domain = {
             x: buildDomain (graphData, 'x', false, 1.5),
             y: buildDomain (graphData, 'y', true, 1.0),
@@ -633,9 +627,10 @@ function Plot ()
                 };
             }
         };
+        var buffer = 0.15;
         var svg = '<div class="svg-div">' +
                     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" ' +
-                    'viewBox="-0.05, -0.05, ' + (domain.x.displaySize + 0.1) + ', ' + (domain.y.displaySize + 0.1) + '" ' +
+                    'viewBox="' + ((7.0 * -buffer) / 4.0) + ', ' + (-buffer) + ', ' + (domain.x.displaySize + (3.0 * buffer)) + ', ' + (domain.y.displaySize + (2.0 * buffer)) + '" ' +
                     'preserveAspectRatio="xMidYMid meet"' +
                     '>' +
                     '<g transform="translate(0, 1), scale(1, -1)">';
@@ -647,19 +642,30 @@ function Plot ()
             }
             return 0;
         };
-        var bottom = domain.y.map (domain.y.min);
-        var top = domain.y.map (domain.y.max);
+        var bottom = 0;
+        var top = domain.y.displaySize;
         for (var i = 0, count = domain.x.ticks.length; i < count; ++i) {
             var ti = domain.x.ticks[i];
             var tick = domain.x.map (ti);
-            svg += '<line x1="' + tick + '" y1="' + bottom + '" x2="' + tick + '" y2="' + top + '" stroke="#c0c0c0" stroke-width="0.005" />'
-            svg += '<text  x="' + tick + '" y="' + (bottom + 0.04) + '" font-size="0.025" font-family="Arial" text-anchor="middle" fill="#808080" transform="scale(1,-1)">' + labelText (ti, domain.x.orderOfMagnitude, domain.x.precision) + '</text>';
+            svg += '<line x1="' + tick + '" y1="0" x2="' + tick + '" y2="' + top + '" stroke="#c0c0c0" stroke-width="0.005" />'
+            svg += '<text  x="' + tick + '" y="0.04" font-size="0.03" font-family="Arial" dominant-baseline="middle" text-anchor="middle" fill="#808080" transform="scale(1,-1)">' + labelText (ti, domain.x.orderOfMagnitude, domain.x.precision) + '</text>';
         }
-        var left = domain.x.map (domain.x.min);
-        var right = domain.x.map (domain.x.max);
+        var left = 0;
+        var right = domain.x.displaySize;
         for (var i = 0, count = domain.y.ticks.length; i < count; ++i) {
-            var tick = domain.y.map (domain.y.ticks[i]);
-            svg += '<line x1="' + left + '" y1="' + tick + '" x2="' + right + '" y2="' + tick + '" stroke="#c0c0c0" stroke-width="0.005" />'
+            var ti = domain.y.ticks[i];
+            var tick = domain.y.map (ti);
+            svg += '<line x1="0" y1="' + tick + '" x2="' + right + '" y2="' + tick + '" stroke="#c0c0c0" stroke-width="0.005" />'
+            svg += '<text  x="-0.02" y="' + -tick + '" font-size="0.03" font-family="Arial" dominant-baseline="middle" text-anchor="end" fill="#808080" transform="scale(1,-1)">' + labelText (ti, domain.y.orderOfMagnitude, domain.y.precision) + '</text>';
+        }
+        if (this.title) {
+            svg += '<text  x="' + (right / 2.0) + '" y="' + -(top + 0.075) + '" font-size="0.075" font-family="Arial" dominant-baseline="middle" text-anchor="middle" fill="#404040" transform="scale(1,-1)">' + this.title + '</text>';
+        }
+        if (this.xAxisTitle) {
+            svg += '<text  x="' + (right / 2.0) + '" y="0.1" font-size="0.05" font-family="Arial" dominant-baseline="middle" text-anchor="middle" fill="#404040" transform="scale(1,-1)">' + this.xAxisTitle + '</text>';
+        }
+        if (this.yAxisTitle) {
+            svg += '<text  x="' + (top / 2.0) + '" y="' + -(buffer + 0.025) + '" font-size="0.05" font-family="Arial" dominant-baseline="middle" text-anchor="middle" fill="#404040" transform="scale(1,-1), rotate(-90)">' + this.yAxisTitle + '</text>';
         }
         svg += '<polyline fill="none" stroke="blue" stroke-width="0.0075" points="';
         for (var i = 0, count = graphData.length; i < count; ++i) {

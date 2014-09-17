@@ -1,9 +1,6 @@
 function Plot () 
 {
     this.tag = "display";
-    this.width = 480;
-    this.height = 320;
-    this.margin = [48, 8, 18, 23]; // Left, Top, Right, Bottom
     this.title = null;
     this.xAxisTitle = null;
     this.yAxisTitle = null;
@@ -102,11 +99,6 @@ function Plot ()
             return null;
         };
         
-        // account for titles in the display
-        if (this.title) { this.margin[1] += 18; }
-        if (this.xAxisTitle) { this.margin[3] += 15; }
-        if (this.yAxisTitle) { this.margin[0] += 15; }
-
         // compute the domain of the data
         var domain = {
             x: buildDomain (graphData, 'x', false, 1.5),
@@ -120,9 +112,10 @@ function Plot ()
         };
 
         // create the raw SVG picture for display
+        var buffer = 0.15;
         var svg = '<div class="svg-div">' +
                     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" ' +
-                    'viewBox="-0.05, -0.05, ' + (domain.x.displaySize + 0.1) + ', ' + (domain.y.displaySize + 0.1) + '" ' +
+                    'viewBox="' + ((7.0 * -buffer) / 4.0) + ', ' + (-buffer) + ', ' + (domain.x.displaySize + (3.0 * buffer)) + ', ' + (domain.y.displaySize + (2.0 * buffer)) + '" ' +
                     'preserveAspectRatio="xMidYMid meet"' + 
                     '>' +
                     '<g transform="translate(0, 1), scale(1, -1)">'; 
@@ -139,21 +132,38 @@ function Plot ()
         };
         
         // draw the x ticks plus the labels
-        var bottom = domain.y.map (domain.y.min);
-        var top = domain.y.map (domain.y.max);
+        var bottom = 0; 
+        var top = domain.y.displaySize;
         for (var i = 0, count = domain.x.ticks.length; i < count; ++i) {
             var ti = domain.x.ticks[i];
             var tick = domain.x.map (ti);
-            svg += '<line x1="' + tick + '" y1="' + bottom + '" x2="' + tick + '" y2="' + top + '" stroke="#c0c0c0" stroke-width="0.005" />'
-            svg += '<text  x="' + tick + '" y="' + (bottom + 0.04) + '" font-size="0.025" font-family="Arial" text-anchor="middle" fill="#808080" transform="scale(1,-1)">' + labelText (ti, domain.x.orderOfMagnitude, domain.x.precision) + '</text>';
+            svg += '<line x1="' + tick + '" y1="0" x2="' + tick + '" y2="' + top + '" stroke="#c0c0c0" stroke-width="0.005" />'
+            svg += '<text  x="' + tick + '" y="0.04" font-size="0.03" font-family="Arial" dominant-baseline="middle" text-anchor="middle" fill="#808080" transform="scale(1,-1)">' + labelText (ti, domain.x.orderOfMagnitude, domain.x.precision) + '</text>';
         }
 
         // draw the y ticks
-        var left = domain.x.map (domain.x.min);
-        var right = domain.x.map (domain.x.max);
+        var left = 0; 
+        var right = domain.x.displaySize;
         for (var i = 0, count = domain.y.ticks.length; i < count; ++i) {
-            var tick = domain.y.map (domain.y.ticks[i]);
-            svg += '<line x1="' + left + '" y1="' + tick + '" x2="' + right + '" y2="' + tick + '" stroke="#c0c0c0" stroke-width="0.005" />'
+            var ti = domain.y.ticks[i];
+            var tick = domain.y.map (ti);
+            svg += '<line x1="0" y1="' + tick + '" x2="' + right + '" y2="' + tick + '" stroke="#c0c0c0" stroke-width="0.005" />'
+            svg += '<text  x="-0.02" y="' + -tick + '" font-size="0.03" font-family="Arial" dominant-baseline="middle" text-anchor="end" fill="#808080" transform="scale(1,-1)">' + labelText (ti, domain.y.orderOfMagnitude, domain.y.precision) + '</text>';
+        }
+
+        // draw the title
+        if (this.title) {
+            svg += '<text  x="' + (right / 2.0) + '" y="' + -(top + 0.075) + '" font-size="0.075" font-family="Arial" dominant-baseline="middle" text-anchor="middle" fill="#404040" transform="scale(1,-1)">' + this.title + '</text>';
+        }
+
+        // draw the x-axis label
+        if (this.xAxisTitle) {
+            svg += '<text  x="' + (right / 2.0) + '" y="0.1" font-size="0.05" font-family="Arial" dominant-baseline="middle" text-anchor="middle" fill="#404040" transform="scale(1,-1)">' + this.xAxisTitle + '</text>';
+        }
+
+        // draw the y-axis label
+        if (this.yAxisTitle) {
+            svg += '<text  x="' + (top / 2.0) + '" y="' + -(buffer + 0.025) + '" font-size="0.05" font-family="Arial" dominant-baseline="middle" text-anchor="middle" fill="#404040" transform="scale(1,-1), rotate(-90)">' + this.yAxisTitle + '</text>';
         }
 
         // make the plot
@@ -168,96 +178,5 @@ function Plot ()
         svg += "</svg></div>"
         
         document.getElementById(this.tag).innerHTML += svg + "<br>";
-        /*
-        // create the svg and g tags inside the target DOM element
-        var g = d3.select("#" + this.tag)
-            .append("svg")
-            .attr("class", "SymbolicMathPlot")
-            .attr("width", this.width)
-            .attr("height", this.height)
-            .append("g");
-            
-        // format graph labels according to their order of magnitude and 
-        // desired precision
-        var labelText = function (number, order, precision) {
-            var     divisor = Math.pow (10, order);
-            var     value = number / divisor;
-            if (value != 0) {
-                return value.toFixed(precision).toString () + ((order != 0) ? ("e" + order) : "");
-            }
-            return 0;
-        };
-        
-        // add the labels to the grid lines
-        var xAxisOrderOfMagnitude = ComputeOrderOfMagnitude (xDomain[1]);
-        g.selectAll(".xLabel")
-            .data(xTicks)
-            .enter().append("text").attr("class", "xLabel")
-            .text(function(d) { return labelText (d, xAxisOrderOfMagnitude, xDomain[3]); })
-            .attr("x", function(d) { return x(d); })
-            .attr("y", y(yDomain[0]))
-            //.attr("dx", 3)
-            .attr("dy", 15)        
-            .attr("fill", "rgba(0, 0, 0, 0.50)")
-            .attr("text-anchor", "middle")
-            .attr("font-family", "Arial")
-            .attr("font-size", "9px");
-         
-        var yAxisOrderOfMagnitude = ComputeOrderOfMagnitude (yDomain[1]);
-        g.selectAll(".yLabel")
-            .data(yTicks)
-            .enter().append("text").attr("class", "yLabel")
-            .text(function(d) { return labelText (d, yAxisOrderOfMagnitude, yDomain[3]); })
-            .attr("x", x (xDomain[0]))
-            .attr("y", function(d) { return y(d) })
-            .attr("dx", -8)
-            .attr("dy", 3)        
-            .attr("fill", "rgba(0, 0, 0, 0.50)")
-            .attr("text-anchor", "end")
-            .attr("font-family", "Arial")
-            .attr("font-size", "9px");
-            
-        // add the title across the top
-        if (this.title) {
-            g.append("text")
-                .text(this.title)
-                .attr("x", this.width / 2.0)
-                .attr("y", 18)
-                .attr("fill", "rgba(0, 0, 0, 0.66)")
-                .attr("text-anchor", "middle")
-                .attr("font-family", "Arial")
-                .attr("font-size", "18px");
-        }
-        
-        // label the x and y axes if needed
-        if (this.xAxisTitle) {
-            g.append("text")
-                .text(this.xAxisTitle)
-                .attr("x", x((xDomain[0] + xDomain[1]) / 2.0))
-                .attr("y", y(yDomain[0]))
-                .attr("dy", 30)        
-                .attr("fill", "rgba(0, 0, 0, 0.66)")
-                .attr("text-anchor", "middle")
-                .attr("font-family", "Arial")
-                .attr("font-weight", "bold")
-                .attr("font-size", "12px");
-        }
-        
-        if (this.yAxisTitle) {
-            var ty = y((yDomain[0] + yDomain[1]) / 2);
-            g.append ("text")
-                .text(this.yAxisTitle)
-                .attr("x", 0)
-                .attr("y", ty)
-                .attr("transform", "translate(10,0) rotate(180,0," + ty + ")")
-                .attr("writing-mode", "tb")
-                .attr("fill", "rgba(0, 0, 0, 0.66)")
-                .attr("text-anchor", "middle")
-                .attr("font-family", "Arial")
-                .attr("font-weight", "bold")
-                .attr("font-size", "12px");
-        }
-        document.getElementById(this.tag).innerHTML += "<br>";
-        */
     }
 }
