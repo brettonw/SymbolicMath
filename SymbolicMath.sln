@@ -17,7 +17,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "site", "site", "{C41D8DA8-7
 		site\SymbolicMath.js = site\SymbolicMath.js
 		site\test-MultiplyDerivative.html = site\test-MultiplyDerivative.html
 		site\test.html = site\test.html
-		site\testMathML.html = site\testMathML.html
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{4285032A-EF1B-4A79-AE1B-7D99481B6229}"
