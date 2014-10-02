@@ -74,10 +74,6 @@ SM.Log = function(a) {
     return EXPR(Log)(a);
 };
 
-SM.Plot = function(graphData) {
-    new Plot ().fromGraphData (graphData);
-};
-
 SM.namedConstants = {
     MATH_PI             : Math.PI,                  // Pi (3.1415926535897932385)
     e                   : Math.E,                   // e (2.718281828459045)

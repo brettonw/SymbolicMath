@@ -4,6 +4,7 @@
         <title>Symbolic Math - Blackbody</title>
         <link rel="stylesheet" href="style.css" />
         <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=MML_HTMLorMML"></script>
+        <script type="text/javascript" src="https://raw.githubusercontent.com/brettonw/graph-svg.js/master/graph-svg.js"></script>
         <script src="SymbolicMath.js"></script>
         <script type="text/javascript">
         function initPage() {
@@ -18,7 +19,6 @@
             L = L.Simplify();
             display += "<td>" + L.toString() + "</td>\n";
             display += "</tr></table></br>\n";
-            document.getElementById("display").innerHTML = display;
 
             // now evaluate the function
             var sampler = new Sampler();
@@ -31,11 +31,21 @@
             var graphData3 = sampler.Evaluate(L, domain, { T: 5500 });
             var graphData4 = sampler.Evaluate(L, domain, { T: 6500 });
 
+            /*
             var plot = new Plot();
             plot.title = "Blackbody Radiation at T(ºK)";
             plot.xAxisTitle = "\u03BB = Wavelength (nm)";
             plot.yAxisTitle = "Spectral Radiance (W / m² / sr / nm)";
             plot.fromGraphDataArray([graphData1, graphData2, graphData3, graphData4]);
+            */
+            display += GraphSvg.plotMultiple(
+                "Blackbody Radiation at T(ºK)",
+                "\u03BB = Wavelength (nm)",
+                "Spectral Radiance (W / m² / sr / nm)",
+                [graphData1, graphData2, graphData3, graphData4]
+            );
+            document.getElementById("display").innerHTML = display;
+
         }
         </script>
     </head>

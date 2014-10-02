@@ -4,6 +4,7 @@
         <title>Symbolic Math - Cubic</title>
         <link rel="stylesheet" href="style.css" />
         <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=MML_HTMLorMML"></script>
+        <script type="text/javascript" src="https://raw.githubusercontent.com/brettonw/graph-svg.js/master/graph-svg.js"></script>
         <script src="SymbolicMath-debug.js"></script>
         <script type="text/javascript">
         function initPage() {
@@ -19,23 +20,19 @@
 
             display += "</table></br>\n";
 
-            document.getElementById('display').innerHTML = display;
-
             // now evaluate the function
             var sampler = new Sampler();
             var domain = { x: "x", from: -2.0, to: 6.0 };
             {
                 var graphData = sampler.Evaluate(equation, domain, {});
-                var plot = new Plot();
-                plot.title = "Cubic (x)";
-                plot.fromGraphData(graphData);
+                display += GraphSvg.plotSingle("Cubic (x)", null, null, graphData);
             }
             {
                 var graphData = sampler.Evaluate(d1, domain, {});
-                var plot = new Plot();
-                plot.title = "1st Derivative (x)";
-                plot.fromGraphData(graphData);
+                display += GraphSvg.plotSingle("1st Derivative (x)", null, null, graphData);
             }
+
+            document.getElementById('display').innerHTML = display;
         }
 
         </script> </head>

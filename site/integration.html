@@ -4,6 +4,7 @@
         <title>Symbolic Math - Integration</title>
         <link rel="stylesheet" href="style.css" />
         <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=MML_HTMLorMML"></script>
+        <script type="text/javascript" src="https://raw.githubusercontent.com/brettonw/graph-svg.js/master/graph-svg.js"></script>
         <script src="SymbolicMath-debug.js"></script>
         <script type="text/javascript">
         function initPage() {
@@ -28,18 +29,12 @@
             display += "<tr><td>" + y_of_t.toString() + "</td></tr>\n";
             display += "<tr><td>" + d1.toString() + "</td></tr>\n";
             display += "</table></br>\n";
-            document.getElementById('display').innerHTML = display;
 
             {
                 var graphDataA = sampler.Evaluate(y_of_t, domain, values);
                 var integrator = new Integrator();
                 var graphDataB = integrator.EvaluateFromExpr(y_of_t, domain, values);
-
-                var plot = new Plot();
-                plot.title = "Y at Time";
-                plot.yAxisTitle = "Y (m)";
-                plot.xAxisTitle = "Time (s)";
-                plot.fromGraphDataArray([graphDataA, graphDataB]);
+                display += GraphSvg.plotMultiple("Y at Time", "Y (m)", "Time (s)", [graphDataA, graphDataB]);
             }
 
             // want to plot time vs. velocity with an object given an initial upward
@@ -47,13 +42,9 @@
             // H = V + A t
             {
                 var graphData = sampler.Evaluate(d1, domain, values);
-
-                var plot = new Plot();
-                plot.title = "Velocity at Time";
-                plot.yAxisTitle = "Velocity (m/s)";
-                plot.xAxisTitle = "Time (s)";
-                plot.fromGraphData(graphData);
+                display += GraphSvg.plotSingle("Velocity at Time", "Velocity (m/s)", "Time (s)", graphData);
             }
+            document.getElementById('display').innerHTML = display;
         }
         </script>
     </head>

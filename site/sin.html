@@ -4,6 +4,7 @@
         <title>Symbolic Math - Sin</title>
         <link rel="stylesheet" href="style.css" />
         <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=MML_HTMLorMML"></script>
+        <script type="text/javascript" src="https://raw.githubusercontent.com/brettonw/graph-svg.js/master/graph-svg.js"></script>
         <script src="SymbolicMath-debug.js"></script>
         <script type="text/javascript">
         function initPage() {
@@ -23,10 +24,9 @@
             var sampler = new Sampler();
             var domain = { x: "x", from: 0.0, to: 2.0 * Math.PI };
             var graphData = sampler.Evaluate(equation, domain, {});
+            display += GraphSvg.plotSingle("Sin (x)", null, null, graphData);
 
-            var plot = new Plot();
-            plot.title = "Sin (x)";
-            plot.fromGraphData(graphData);
+            document.getElementById('display').innerHTML = display;
         }
 
         </script> </head>
