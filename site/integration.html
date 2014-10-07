@@ -2,9 +2,10 @@
 <html>
     <head>
         <title>Symbolic Math - Integration</title>
+		<link rel="stylesheet" type="text/css" href="https://rawgit.com/brettonw/graph-svg.js/master/plot-svg.css" />
+		<script type="text/javascript" src="https://rawgit.com/brettonw/graph-svg.js/master/plot-svg.js"></script>
         <link rel="stylesheet" href="style.css" />
         <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=MML_HTMLorMML"></script>
-        <script type="text/javascript" src="https://raw.githubusercontent.com/brettonw/graph-svg.js/master/graph-svg.js"></script>
         <script src="SymbolicMath-debug.js"></script>
         <script type="text/javascript">
         function initPage() {
@@ -31,18 +32,20 @@
             display += "</table></br>\n";
 
             {
-                var graphDataA = sampler.Evaluate(y_of_t, domain, values);
+                var plotDataA = sampler.Evaluate(y_of_t, domain, values);
                 var integrator = new Integrator();
-                var graphDataB = integrator.EvaluateFromExpr(y_of_t, domain, values);
-                display += GraphSvg.plotMultiple("Y at Time", "Y (m)", "Time (s)", [graphDataA, graphDataB]);
+                var plotDataB = integrator.EvaluateFromExpr(y_of_t, domain, values);
+                var svg = PlotSvg.multipleLine("Y at Time", "Y (m)", "Time (s)", [plotDataA, plotDataB]);
+				display += PlotSvg.wrap (svg, 480, null, null) + "<br>";
             }
 
             // want to plot time vs. velocity with an object given an initial upward
             // velocity, and acted on by gravity (G=9.8M/s^2)
             // H = V + A t
             {
-                var graphData = sampler.Evaluate(d1, domain, values);
-                display += GraphSvg.plotSingle("Velocity at Time", "Velocity (m/s)", "Time (s)", graphData);
+                var plotData = sampler.Evaluate(d1, domain, values);
+                var svg = PlotSvg.singleLine("Velocity at Time", "Velocity (m/s)", "Time (s)", plotData);
+				display += PlotSvg.wrap (svg, 480, null, null) + "<br>";
             }
             document.getElementById('display').innerHTML = display;
         }

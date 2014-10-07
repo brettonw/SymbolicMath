@@ -2,9 +2,10 @@
 <html>
     <head>
         <title>Symbolic Math - Cubic</title>
+		<link rel="stylesheet" type="text/css" href="https://rawgit.com/brettonw/graph-svg.js/master/plot-svg.css" />
+		<script type="text/javascript" src="https://rawgit.com/brettonw/graph-svg.js/master/plot-svg.js"></script>
         <link rel="stylesheet" href="style.css" />
         <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=MML_HTMLorMML"></script>
-        <script type="text/javascript" src="https://raw.githubusercontent.com/brettonw/graph-svg.js/master/graph-svg.js"></script>
         <script src="SymbolicMath-debug.js"></script>
         <script type="text/javascript">
         function initPage() {
@@ -24,12 +25,14 @@
             var sampler = new Sampler();
             var domain = { x: "x", from: -2.0, to: 6.0 };
             {
-                var graphData = sampler.Evaluate(equation, domain, {});
-                display += GraphSvg.plotSingle("Cubic (x)", null, null, graphData);
+                var plotData = sampler.Evaluate(equation, domain, {});
+                var svg = PlotSvg.singleLine("Cubic (x)", null, null, plotData);
+                display += PlotSvg.wrap (svg, 480, null, null) + "<br>";
             }
             {
-                var graphData = sampler.Evaluate(d1, domain, {});
-                display += GraphSvg.plotSingle("1st Derivative (x)", null, null, graphData);
+                var plotData = sampler.Evaluate(d1, domain, {});
+                var svg = PlotSvg.singleLine("1st Derivative (x)", null, null, plotData);
+                display += PlotSvg.wrap (svg, 480, null, null) + "<br>";
             }
 
             document.getElementById('display').innerHTML = display;
