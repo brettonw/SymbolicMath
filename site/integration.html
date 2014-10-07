@@ -35,7 +35,7 @@
                 var plotDataA = sampler.Evaluate(y_of_t, domain, values);
                 var integrator = new Integrator();
                 var plotDataB = integrator.EvaluateFromExpr(y_of_t, domain, values);
-                var svg = PlotSvg.multipleLine("Y at Time", "Y (m)", "Time (s)", [plotDataA, plotDataB]);
+                var svg = PlotSvg.multipleLine("Y at Time", "Time (s)", "Y (m)", [plotDataA, plotDataB]);
 				display += PlotSvg.wrap (svg, 480, null, null) + "<br>";
             }
 
@@ -44,7 +44,7 @@
             // H = V + A t
             {
                 var plotData = sampler.Evaluate(d1, domain, values);
-                var svg = PlotSvg.singleLine("Velocity at Time", "Velocity (m/s)", "Time (s)", plotData);
+                var svg = PlotSvg.singleLine("Velocity at Time", "Time (s)", "Velocity (m/s)", plotData);
 				display += PlotSvg.wrap (svg, 480, null, null) + "<br>";
             }
             document.getElementById('display').innerHTML = display;
