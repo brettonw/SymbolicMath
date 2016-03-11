@@ -1,4 +1,4 @@
-<!doctype html> 
+<!doctype html>
 <html>
     <head>
         <title>Symbolic Math - Gravity</title>
@@ -15,6 +15,7 @@
 
             // create the sampler I'll use to build graphs
             var sampler = new Sampler();
+            sampler.minRecursion = 6;
 
             // want to know time and velocity at distance travelled - note this is
             // entirely independent of mass
@@ -29,14 +30,14 @@
             display += "</table></br>\n";
 
             // compute parameters for the following graphs
-            var values = { d: 1.0, a: SM.namedConstants.g };
+            var values = { "d": 0.5, "a": SM.namedConstants.g };
             var t = t_at_d.N(values);
             var v = v_at_d.N(values);
-            console.log("time at arrest: " + t);
-            console.log("velocity at arrest: " + v);
+            console.log("time at arrest: " + t + "s");
+            console.log("velocity at arrest: " + v + "m/s");
             {
                 // now evaluate the function
-                var plotData = sampler.Evaluate(v_at_d, { x: "d", from: 0.0, to: 1.5 }, { a: SM.namedConstants.g });
+                var plotData = sampler.Evaluate(v_at_d, { "x": "d", "from": 0.0, "to": 1.5 }, { "a": SM.namedConstants.g });
 				var svg = PlotSvg.singleLine("Velocity vs Distance fallen", "Distance (m)", "Velocity (m s^-1)", plotData);
 				display += PlotSvg.wrap (svg, 480, null, null) + "<br>";
             }
@@ -53,33 +54,76 @@
             // A = F / m
             // V = A t -> V = F t / m
             // F = m V / t
+            var f_at_t = SM.Multiply("m", "v").Divide("t");
+            var m = 10.0;
+            var f = f_at_t.N ({ "m": m, "v": v, "t": 1.0 });
+            console.log("force at stop time (" + 1.0 + "): " + f + "N");
             {
-                var F_at_t = SM.Multiply("m", "v").Divide("t");
-
                 // now evaluate the function
-                var plotData = sampler.Evaluate(F_at_t, { x: "t", from: 1.0e-2, to: 0.25 }, { m: 1.0, v: v } );
-				var svg = PlotSvg.singleLine("Force at stop (fall 1m)", "Time (s)", "Force (N)", plotData);
+                var plotData = sampler.Evaluate(f_at_t, { "x": "t", "from": 1.0e-2, "to": 1.1 }, { "m": m, "v": v } );
+				var svg = PlotSvg.singleLine("Force at stop (fall 0.5m)", "Time (s)", "Force (N)", plotData);
+				display += PlotSvg.wrap (svg, 480, null, null) + "<br>";
+            }
+
+            // d = Vt + 1/2 A t ^2
+            /*
+            var d_at_t = SM.Add (SM.Multiply ("v", "t"), SM.Multiply (-0.5, SM.Divide ("f", "m"), "t", "t"));
+            var d = d_at_t.N ({ "v": v, "t": 1.0 , "f": f, "m": m });
+            console.log("d at f: " + d + "m");
+            {
+                // now evaluate the function
+                var plotData = sampler.Evaluate(d_at_t, { "x": "t", "from": 1.0e-2, "to": 1.1 }, { "m": m, "v": v, "f": f } );
+				var svg = PlotSvg.singleLine("Distance at t", "Time (s)", "Force (N)", plotData);
+				display += PlotSvg.wrap (svg, 480, null, null) + "<br>";
+            }
+            */
+
+            //var d_at_t = SM.Multiply(2, "m", SM.Subtract("d", SM.Multiply("v", "t"))).Divide(SM.Power("t", 2));
+            //var f_at_t_b = SM.Multiply(2, "m", SM.Subtract("d", SM.Multiply("v", "t"), SM.Multiply ("g", "t", "t").Divide (2.0))).Divide(SM.Multiply("t", "t"));
+            var f_at_t_b = SM.Multiply(2, "m", SM.Subtract("d", SM.Multiply("v", "t"))).Divide(SM.Multiply("t", "t"));
+            {
+                // now evaluate the function
+                var plotData = sampler.Evaluate(f_at_t_b, { "x": "t", "from": 5.5e-2, "to": 7.0e-2 }, { "m": m, "v": v, "d": 0.1, "g": SM.namedConstants.g });
+				var svg = PlotSvg.singleLine("Force at stop (fall 0.5m, stretch 10%)", "Time (s)", "Force (N)", plotData);
+				display += PlotSvg.wrap (svg, 480, null, null) + "<br>";
+            }
+
+            var df_at_t_b = f_at_t_b.D (Utility.make ("t", 5.5e-2));
+            var t = sampler.NSolve (df_at_t_b, { "x": "t", "from": 5.5e-2, "to": 7.0e-2 }, { "m": m, "v": v, "d": 0.1, "g": SM.namedConstants.g });
+            console.log("time to stop: " + t + "s");
+
+            {
+                // now evaluate the function
+                var plotData = sampler.Evaluate(df_at_t_b, { "x": "t", "from": 5.5e-2, "to": 7.0e-2 }, { "m": m, "v": v, "d": 0.1, "g": SM.namedConstants.g });
+				var svg = PlotSvg.singleLine("D Force at stop (fall 0.5m, stretch 10%)", "Time (s)", "Force (N)", plotData);
 				display += PlotSvg.wrap (svg, 480, null, null) + "<br>";
             }
 
             // now change it around so that we say that 1m of rope is allowed to stretch
-            // by 5%, so the stop distance must be no more than 0.05m
+            // by 10%, so the stop distance must be no more than 0.1m
             // velocity change must be -v, over a time t, such that the distance travelled
             // is some amount d
-            // d = v t + -1/2 f t^2 / m
-            {
-                var d_at_t = SM.Multiply(2, "m", SM.Subtract(SM.Multiply("v", "t"), "d")).Divide(SM.Power("t", 2));
-                var F_at_t_B = SM.Multiply(2, "m", SM.Subtract(SM.Multiply("v", "t"), "d")).Divide(SM.Power("t", 2));
+            // d = v t + -1/2 f t^2 / m, but we also want to account for G over that stop time
+            var masses = [ 10, 40, 50, 60, 70, 80, 90, 100 ];
+            for (var i = 0, end = masses.length; i < end; ++i) {
+                f = f_at_t.N ({ "m": masses[i], "v": v, "t": t });
+                console.log("force at stop time (" + t + ") for mass (" + masses[i] + "): " + f + "N");
+            }
 
+            // force at fixed time, varying by mass of object
+            {
                 // now evaluate the function
-                var plotData = sampler.Evaluate(F_at_t_B, { x: "t", from: 1.0e-2, to: 1.0 }, { m: 1.0, v: v, d: 0.05 });
-				var svg = PlotSvg.singleLine("Force at stop (fall 1m, stretch 5%)", "Time (s)", "Force (N)", plotData);
+                var plotData = sampler.Evaluate(f_at_t, { "x": "m", "from": 10.0, "to": 100 }, { "t": t, "v": v } );
+				var svg = PlotSvg.singleLine("Force at stop by mass (fall 0.5m)", "Mass (kg)", "Force (N)", plotData);
 				display += PlotSvg.wrap (svg, 480, null, null) + "<br>";
             }
+
+
+
             document.getElementById('display').innerHTML = display;
         }
 
-        </script> 
+        </script>
     </head>
     <body onload="initPage();">
         <div id="display"></div>

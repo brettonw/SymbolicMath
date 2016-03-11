@@ -5,10 +5,10 @@ Multiply.SortArray = function(array) {
     var sortOrder = { Constant:1, Divide:2, Add:3, Variable:4, Power:5, Function:6, Multiply:7 };
     return array.sort (function (left, right) {
         return sortOrder[left.typename] - sortOrder[right.typename];
-    });    
+    });
     return array;
 };
-    
+
 Multiply.N = function(values) {
     var value = this.children[0].N(values);
 
@@ -35,14 +35,14 @@ Multiply.D = function(values) {
             var term = (i == j) ? this.children[j].D(values) : this.children[j];
             m.Accumulate (term);
         }
-        DEBUG_OUT(DEBUG_LEVEL.DBG, "Multiply.D", "m = " + m.toString ());
+        DEBUG_OUT(DEBUG_LEVEL.TRC, "Multiply.D", "m = " + m.toString ());
         m = m.Simplify ();
-        DEBUG_OUT(DEBUG_LEVEL.DBG, "Multiply.D", "m (simplified) = " + m.toString ());
+        DEBUG_OUT(DEBUG_LEVEL.TRC, "Multiply.D", "m (simplified) = " + m.toString ());
         d.Accumulate (m);
     }
-    DEBUG_OUT(DEBUG_LEVEL.DBG, "Multiply.D", "d = " + d.toString ());
+    DEBUG_OUT(DEBUG_LEVEL.TRC, "Multiply.D", "d = " + d.toString ());
     d = d.Simplify ();
-    DEBUG_OUT(DEBUG_LEVEL.DBG, "Multiply.D", "d (simplified) = " + d.toString ());
+    DEBUG_OUT(DEBUG_LEVEL.TRC, "Multiply.D", "d (simplified) = " + d.toString ());
     return d;
 };
 
@@ -72,9 +72,9 @@ Multiply.Simplify = function() {
         return simplifiedChildren;
     }
     var newChildren = simplifyChildren (this.children);
-    
-    // if there are any "Multiply" children, suck them up into this one, 
-    // simplified children should guarantee that the Multiply nodes have no 
+
+    // if there are any "Multiply" children, suck them up into this one,
+    // simplified children should guarantee that the Multiply nodes have no
     // Multiply children themselves
     var levelMultiplication = function (children) {
         for (var i = 0; i < children.length;) {
@@ -105,10 +105,10 @@ Multiply.Simplify = function() {
                 ++i;
             }
         }
-        
+
         // evaluate the constant value and decide what to do
         if (constantValue == 1) {
-            // skip it because multiplication by 1 is redundant, unless 
+            // skip it because multiplication by 1 is redundant, unless
             // there are no other nodes left
             if (children.length == 0) {
                 children.push (EXPR(Constant)(1));
@@ -123,7 +123,7 @@ Multiply.Simplify = function() {
         }
     }
     collapseConstants (newChildren);
-    
+
     // collect like terms into powers
     var collectTerms = function (children) {
         // identify all the terms
@@ -148,15 +148,15 @@ Multiply.Simplify = function() {
                 ++i;
             }
         }
-        
+
         // now process the gathered terms
         for (var term in terms) {
             children.push (EXPR(Power)(term, terms[term]).Simplify ());
         }
     }
     collectTerms (newChildren);
-    
-    // special case of multiplication by a division node calls for a 
+
+    // special case of multiplication by a division node calls for a
     // reordering so that the division node is one up
     var transformDivision = function (children) {
         for (var i = 0; i < children.length; ++i) {
@@ -173,7 +173,7 @@ Multiply.Simplify = function() {
         }
     }
     transformDivision (newChildren);
-    
+
     // if there's only one child, it *is* the result
     if (newChildren.length == 1) {
         return newChildren[0];
