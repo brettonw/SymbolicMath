@@ -2,13 +2,14 @@
 <html>
     <head>
         <title>Symbolic Math - Integration</title>
-		<link rel="stylesheet" type="text/css" href="https://rawgit.com/brettonw/graph-svg.js/master/plot-svg.css" />
-		<script type="text/javascript" src="https://rawgit.com/brettonw/graph-svg.js/master/plot-svg.js"></script>
+		<link rel="stylesheet" type="text/css" href="https://rawgit.com/brettonw/plot-svg.js/master/plot-svg.css" />
+		<script type="text/javascript" src="https://rawgit.com/brettonw/plot-svg.js/master/plot-svg.js"></script>
         <link rel="stylesheet" href="style.css" />
         <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=MML_HTMLorMML"></script>
         <script src="SymbolicMath-debug.js"></script>
         <script type="text/javascript">
         function initPage() {
+            PlotSvg.setPlotPoints (false);
 
             var display = new String();
             display = "<table cellspacing='5'>";
@@ -35,7 +36,7 @@
                 var plotDataA = sampler.Evaluate(y_of_t, domain, values);
                 var integrator = new Integrator();
                 var plotDataB = integrator.EvaluateFromExpr(y_of_t, domain, values);
-                var svg = PlotSvg.multipleLine("Y at Time", "Time (s)", "Y (m)", [plotDataA, plotDataB]);
+                var svg = PlotSvg.multipleLine("Y at Time", "Time (s)", "Y (m)", [plotDataA, plotDataB], ["Sampled", "Integrated"]);
 				display += PlotSvg.wrap (svg, 480, null, null) + "<br>";
             }
 

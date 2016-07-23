@@ -185,3 +185,6 @@ FakesAssemblies/
 # Apple crud
 .DS_Store
 
+# IntelliJ
+.idea
+SymbolicMath.iml

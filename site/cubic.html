@@ -2,8 +2,8 @@
 <html>
     <head>
         <title>Symbolic Math - Cubic</title>
-		<link rel="stylesheet" type="text/css" href="https://rawgit.com/brettonw/graph-svg.js/master/plot-svg.css" />
-		<script type="text/javascript" src="https://rawgit.com/brettonw/graph-svg.js/master/plot-svg.js"></script>
+		<link rel="stylesheet" type="text/css" href="https://rawgit.com/brettonw/plot-svg.js/master/plot-svg.css" />
+		<script type="text/javascript" src="https://rawgit.com/brettonw/plot-svg.js/master/plot-svg.js"></script>
         <link rel="stylesheet" href="style.css" />
         <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=MML_HTMLorMML"></script>
         <script src="SymbolicMath-debug.js"></script>
@@ -22,6 +22,7 @@
             display += "</table></br>\n";
 
             // now evaluate the function
+            PlotSvg.setPlotPoints (false);
             var sampler = new Sampler();
             var domain = { x: "x", from: -2.0, to: 6.0 };
             {

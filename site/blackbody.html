@@ -2,8 +2,8 @@
 <html>
     <head>
         <title>Symbolic Math - Blackbody</title>
-		<link rel="stylesheet" type="text/css" href="https://rawgit.com/brettonw/graph-svg.js/master/plot-svg.css" />
-		<script type="text/javascript" src="https://rawgit.com/brettonw/graph-svg.js/master/plot-svg.js"></script>
+		<link rel="stylesheet" type="text/css" href="https://rawgit.com/brettonw/plot-svg.js/master/plot-svg.css" />
+		<script type="text/javascript" src="https://rawgit.com/brettonw/plot-svg.js/master/plot-svg.js"></script>
         <link rel="stylesheet" href="style.css" />
         <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=MML_HTMLorMML"></script>
         <script src="SymbolicMath.js"></script>
@@ -32,13 +32,14 @@
             var plotData3 = sampler.Evaluate(L, domain, { T: 5500 });
             var plotData4 = sampler.Evaluate(L, domain, { T: 6500 });
 
-			var svg = PlotSvg.multipleLine(
+			var svg = PlotSvg.setPlotPoints (false).multipleLine(
 			"Blackbody Radiation at T(ºK)",
 			"\u03BB = Wavelength (nm)",
 			"Spectral Radiance (W / m² / sr / nm)",
-			[plotData1, plotData2, plotData3, plotData4]
+			[plotData1, plotData2, plotData3, plotData4],
+			["3,500ºK", "4,500ºK", "5,500ºK", "6,500ºK"]
 			);
-			display += PlotSvg.wrap (svg, 480, null, null) + "<br>";
+			display += PlotSvg.wrap (svg, 800, null, null) + "<br>";
             document.getElementById("display").innerHTML = display;
 
         }

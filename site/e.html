@@ -2,8 +2,8 @@
 <html>
     <head>
         <title>Symbolic Math - e</title>
-		<link rel="stylesheet" type="text/css" href="https://rawgit.com/brettonw/graph-svg.js/master/plot-svg.css" />
-		<script type="text/javascript" src="https://rawgit.com/brettonw/graph-svg.js/master/plot-svg.js"></script>
+		<link rel="stylesheet" type="text/css" href="https://rawgit.com/brettonw/plot-svg.js/master/plot-svg.css" />
+		<script type="text/javascript" src="https://rawgit.com/brettonw/plot-svg.js/master/plot-svg.js"></script>
         <link rel="stylesheet" href="style.css" />
         <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=MML_HTMLorMML"></script>
         <script src="SymbolicMath-debug.js"></script>
@@ -24,7 +24,7 @@
             var domain = { x: "x", from: 0, to: 20 }
             var plotData = sampler.Evaluate(equation, domain, {});
 
-			var svg = PlotSvg.singleLine("e", null, null, plotData);
+			var svg = PlotSvg.setPlotPoints (false).singleLine("e", null, null, plotData);
             display += PlotSvg.wrap (svg, 480, null, null) + "<br>";
 
             document.getElementById('display').innerHTML = display;
